@@ -1,0 +1,8 @@
+[package]
+name = "rust_locr"
+version = "0.1.0"
+authors = ["Ringo Leese <webmaster@ringoleese.de>"]
+
+[dependencies]
+regex = "1"
+lazy_static = "1"

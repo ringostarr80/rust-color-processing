@@ -119,4 +119,22 @@ mod tests {
         assert_eq!(red_color.blue, 0);
         assert_eq!(red_color.alpha, 128);
     }
+
+    #[test]
+    fn color_cmyk_string() {
+        let random_color = Color::new_string("cmyk(0%, 55%, 100%, 0%)").unwrap();
+        assert_eq!(random_color.red, 255);
+        assert_eq!(random_color.green, 115);
+        assert_eq!(random_color.blue, 0);
+        assert_eq!(random_color.alpha, 255);
+    }
+
+    #[test]
+    fn color_hsl_string() {
+        let red_color = Color::new_string("hsl(0, 100%, 50%)").unwrap();
+        assert_eq!(red_color.red, 255);
+        assert_eq!(red_color.green, 0);
+        assert_eq!(red_color.blue, 0);
+        assert_eq!(red_color.alpha, 255);
+    }
 }

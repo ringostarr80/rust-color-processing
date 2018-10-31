@@ -1,5 +1,6 @@
 extern crate regex;
 
+use std::ops::Rem;
 use self::regex::Regex;
 
 pub struct Color {
@@ -200,8 +201,48 @@ impl Color {
 		if color.is_none() {
 			color = Color::try_parse_rgba(string);
 		}
+		if color.is_none() {
+			color = Color::try_parse_cmyk(string);
+		}
+		if color.is_none() {
+			color = Color::try_parse_hsl(string);
+		}
+		if color.is_none() {
+			color = Color::try_parse_hsla(string);
+		}
 
 		return color;
+	}
+
+	/*
+	fn compute_rgb_from_hsl(h: f64, s: f64, l: f64) -> Result<[f64; 3], Err> {
+
+	}
+	*/
+
+	fn try_parse_cmyk(string: &str) -> Option<Color> {
+		lazy_static! {
+			static ref re_cmyk: Regex = Regex::new(r"^cmyk\s*\(\s*(\d+(\.\d+)?)\s*%?\s*,\s*(\d+(\.\d+)?)\s*%?\s*,\s*(\d+(\.\d+)?)\s*%?\s*,\s*(\d+(\.\d+)?)\s*%?\s*\)$").unwrap();
+		}
+		let caps = re_cmyk.captures(string);
+		match caps {
+			Some(cap) => {
+				let cyan: f64 = String::from(&cap[1]).parse().unwrap();
+				let magenta: f64 = String::from(&cap[3]).parse().unwrap();
+				let yellow: f64 = String::from(&cap[5]).parse().unwrap();
+				let black: f64 = String::from(&cap[7]).parse().unwrap();
+				if cyan > 100.0 || magenta > 100.0 || yellow > 100.0 || black > 100.0 {
+					return None;
+				}
+
+				let r = (255.0 * (1.0 - cyan / 100.0) * (1.0 - black / 100.0)).round() as u8;
+				let g = (255.0 * (1.0 - magenta / 100.0) * (1.0 - black / 100.0)).round() as u8;
+				let b = (255.0 * (1.0 - yellow / 100.0) * (1.0 - black / 100.0)).round() as u8;
+
+				Some(Color::new_rgb(r, g, b))
+			},
+			None => None
+		}
 	}
 
 	fn try_parse_hex(string: &str) -> Option<Color> {
@@ -262,6 +303,144 @@ impl Color {
 				let g = u8::from_str_radix(g_hex.as_str(), 16).unwrap();
 				let b = u8::from_str_radix(b_hex.as_str(), 16).unwrap();
 				Some(Color::new_argb(a, r, g, b))
+			},
+			None => None
+		}
+	}
+
+	fn try_parse_hsl(string: &str) -> Option<Color> {
+		lazy_static! {
+			static ref re_hsl: Regex = Regex::new(r"^hsl\s*\(\s*(\d{1,3})\s*,\s*(\d+(\.\d+)?)\s*%?\s*,\s*(\d+(\.\d+)?)\s*%?\s*\)$").unwrap();
+		}
+		let caps = re_hsl.captures(string);
+		match caps {
+			Some(cap) => {
+				let mut h: f64 = String::from(&cap[1]).parse().unwrap();
+				let mut s: f64 = String::from(&cap[2]).parse().unwrap();
+				let mut l: f64 = String::from(&cap[4]).parse().unwrap();
+				if h > 360.0 {
+					return None;
+				}
+
+				s = s / 100.0;
+				l = l / 100.0;
+				if s > 1.0 {
+					return None;
+				}
+				if l > 1.0 {
+					return None;
+				}
+
+				let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
+				h = h / 60.0;
+				let x = c * (1.0 - (h.rem(2.0) - 1.0).abs());
+
+				let mut r1: f64 = 0.0;
+				let mut g1: f64 = 0.0;
+				let mut b1: f64 = 0.0;
+				if h >= 0.0 && h <= 1.0 {
+					r1 = c;
+					g1 = x;
+					//b1 = 0.0;
+				} else if h >= 1.0 && h <= 2.0 {
+					r1 = x;
+					g1 = x;
+					//b1 = 0.0;
+				} else if h >= 2.0 && h <= 3.0 {
+					//r1 = 0.0;
+					g1 = c;
+					b1 = x;
+				} else if h >= 3.0 && h <= 4.0 {
+					//r1 = 0.0;
+					g1 = x;
+					b1 = c;
+				} else if h >= 4.0 && h <= 5.0 {
+					r1 = x;
+					//g1 = 0.0;
+					b1 = c;
+				} else if h >= 5.0 && h <= 6.0 {
+					r1 = c;
+					//g1 = 0.0;
+					b1 = x;
+				}
+
+				let m = l - c / 2.0;
+				let r = ((r1 + m) * 255.0).round() as u8;
+				let g = ((g1 + m) * 255.0).round() as u8;
+				let b = ((b1 + m) * 255.0).round() as u8;
+
+				Some(Color::new_rgb(r, g, b))
+			},
+			None => None
+		}
+	}
+
+	fn try_parse_hsla(string: &str) -> Option<Color> {
+		lazy_static! {
+			static ref re_hsl: Regex = Regex::new(r"^hsla\s*\(\s*(\d{1,3})\s*,\s*(\d+(\.\d+)?)\s*%?\s*,\s*(\d+(\.\d+)?)\s*%?\s*,\s*(\d+(\.\d+)?)\s*\)$").unwrap();
+		}
+		let caps = re_hsl.captures(string);
+		match caps {
+			Some(cap) => {
+				let mut h: f64 = String::from(&cap[1]).parse().unwrap();
+				let mut s: f64 = String::from(&cap[2]).parse().unwrap();
+				let mut l: f64 = String::from(&cap[4]).parse().unwrap();
+				let mut a: f64 = String::from(&cap[6]).parse().unwrap();
+				if h > 360.0 {
+					return None;
+				}
+				if a > 1.0 {
+					return None;
+				}
+
+				s = s / 100.0;
+				l = l / 100.0;
+				if s > 1.0 {
+					return None;
+				}
+				if l > 1.0 {
+					return None;
+				}
+
+				let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
+				h = h / 60.0;
+				let x = c * (1.0 - (h.rem(2.0) - 1.0).abs());
+
+				let mut r1: f64 = 0.0;
+				let mut g1: f64 = 0.0;
+				let mut b1: f64 = 0.0;
+				if h >= 0.0 && h <= 1.0 {
+					r1 = c;
+					g1 = x;
+					//b1 = 0.0;
+				} else if h >= 1.0 && h <= 2.0 {
+					r1 = x;
+					g1 = x;
+					//b1 = 0.0;
+				} else if h >= 2.0 && h <= 3.0 {
+					//r1 = 0.0;
+					g1 = c;
+					b1 = x;
+				} else if h >= 3.0 && h <= 4.0 {
+					//r1 = 0.0;
+					g1 = x;
+					b1 = c;
+				} else if h >= 4.0 && h <= 5.0 {
+					r1 = x;
+					//g1 = 0.0;
+					b1 = c;
+				} else if h >= 5.0 && h <= 6.0 {
+					r1 = c;
+					//g1 = 0.0;
+					b1 = x;
+				}
+
+				let m = l - c / 2.0;
+				let r = ((r1 + m) * 255.0).round() as u8;
+				let g = ((g1 + m) * 255.0).round() as u8;
+				let b = ((b1 + m) * 255.0).round() as u8;
+
+				Some(Color::new_rgb(r, g, b))
 			},
 			None => None
 		}

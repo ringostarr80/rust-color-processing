@@ -137,4 +137,87 @@ mod tests {
         assert_eq!(red_color.blue, 0);
         assert_eq!(red_color.alpha, 255);
     }
+
+    #[test]
+    fn color_hsla_string() {
+        let red_color = Color::new_string("hsla(0, 100%, 50%, 0.3)").unwrap();
+        assert_eq!(red_color.red, 255);
+        assert_eq!(red_color.green, 0);
+        assert_eq!(red_color.blue, 0);
+        assert_eq!(red_color.alpha, 77);
+    }
+
+    #[test]
+    fn color_hwb_string() {
+        let red_color = Color::new_string("hwb(0, 0%, 0%)").unwrap();
+        assert_eq!(red_color.red, 255);
+        assert_eq!(red_color.green, 0);
+        assert_eq!(red_color.blue, 0);
+        assert_eq!(red_color.alpha, 255);
+
+        let green_color = Color::new_string("hwb(120, 0%, 0%)").unwrap();
+        assert_eq!(green_color.red, 0);
+        assert_eq!(green_color.green, 255);
+        assert_eq!(green_color.blue, 0);
+        assert_eq!(green_color.alpha, 255);
+
+        let blue_color = Color::new_string("hwb(240, 0%, 0%)").unwrap();
+        assert_eq!(blue_color.red, 0);
+        assert_eq!(blue_color.green, 0);
+        assert_eq!(blue_color.blue, 255);
+        assert_eq!(blue_color.alpha, 255);
+
+        let another_blue_color = Color::new_string("hwb(240, 26%, 50%)").unwrap();
+        assert_eq!(another_blue_color.red, 66);
+        assert_eq!(another_blue_color.green, 66);
+        assert_eq!(another_blue_color.blue, 128);
+        assert_eq!(another_blue_color.alpha, 255);
+    }
+
+    #[test]
+    fn color_hwba_string() {
+        let red_color = Color::new_string("hwba(0, 0%, 0%, 0.3)").unwrap();
+        assert_eq!(red_color.red, 255);
+        assert_eq!(red_color.green, 0);
+        assert_eq!(red_color.blue, 0);
+        assert_eq!(red_color.alpha, 77);
+
+        let green_color = Color::new_string("hwba(120, 0%, 0%, 0.5)").unwrap();
+        assert_eq!(green_color.red, 0);
+        assert_eq!(green_color.green, 255);
+        assert_eq!(green_color.blue, 0);
+        assert_eq!(green_color.alpha, 128);
+
+        let blue_color = Color::new_string("hwba(240, 0%, 0%, 0.6)").unwrap();
+        assert_eq!(blue_color.red, 0);
+        assert_eq!(blue_color.green, 0);
+        assert_eq!(blue_color.blue, 255);
+        assert_eq!(blue_color.alpha, 153);
+
+        let another_blue_color = Color::new_string("hwba(240, 26%, 50%, 1)").unwrap();
+        assert_eq!(another_blue_color.red, 66);
+        assert_eq!(another_blue_color.green, 66);
+        assert_eq!(another_blue_color.blue, 128);
+        assert_eq!(another_blue_color.alpha, 255);
+    }
+
+    #[test]
+    fn color_to_hex_string()
+    {
+        let red_color = Color::new_string("red").unwrap();
+        assert_eq!(red_color.to_hex_string(), "#FF0000");
+
+        let transparent_green_color = Color::new_string("#8000FF00").unwrap();
+        assert_eq!(transparent_green_color.to_hex_string(), "#8000FF00");
+    }
+
+    #[test]
+    fn color_to_rgb_string()
+    {
+        let red_color = Color::new_string("red").unwrap();
+        assert_eq!(red_color.to_rgb_string(), "rgb(255, 0, 0)");
+
+        let transparent_green_color = Color::new_string("#8000FF00").unwrap();
+        assert_eq!(transparent_green_color.to_rgb_string(), "rgba(0, 255, 0, 0.5)");
+    }
 }

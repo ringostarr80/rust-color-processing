@@ -266,6 +266,23 @@ mod tests {
     }
 
     #[test]
+    fn color_colorize_string() {
+        let white = Color::new_string("white").unwrap();
+        let red_colorized = white.colorize_string("red").unwrap();
+        assert_eq!(red_colorized.to_hex_string(), "#FF0000");
+
+        let lime_colorized = white.colorize_string("lime").unwrap();
+        assert_eq!(lime_colorized.to_hex_string(), "#00FF00");
+
+        let blue_colorized = white.colorize_string("blue").unwrap();
+        assert_eq!(blue_colorized.to_hex_string(), "#0000FF");
+
+        let random_color = Color::new_string("#ABCDEF").unwrap();
+        let random_colorized = random_color.colorize_string("#FEDCBA").unwrap();
+        assert_eq!(random_colorized.to_hex_string(), "#AAB0AE");
+    }
+
+    #[test]
     fn color_grayscale() {
         let color = Color::new_string("#FF7300").unwrap();
         let grayscaled = color.grayscale();

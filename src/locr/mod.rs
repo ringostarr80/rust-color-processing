@@ -37,7 +37,7 @@ impl Color {
 		}
 	}
 
-	pub fn new_hsl(h: f64, s: f64, l: f64) -> Result<Color, String> {
+	pub fn new_hsl<'a>(h: f64, s: f64, l: f64) -> Result<Color, &'a str> {
 		match Color::get_rgb_from_hsl(h, s, l) {
 			Ok(rgb) => {
 				Ok(Color {
@@ -233,10 +233,30 @@ impl Color {
 		return color;
 	}
 
-	fn get_hsl_from_rgb(r: u8, g: u8, b: u8) -> (f64, f64, f64) {
-		let r = r as f64 / 255.0;
-		let g = g as f64 / 255.0;
-		let b = b as f64 / 255.0;
+	pub fn get_cmyk(&self) -> (f64, f64, f64, f64) {
+		let r = self.red as f64 / 255.0;
+		let g = self.green as f64 / 255.0;
+		let b = self.blue as f64 / 255.0;
+		let mut rgb_max = r;
+		if g > rgb_max {
+			rgb_max = g;
+		}
+		if b > rgb_max {
+			rgb_max = b;
+		}
+		
+		let black = 1.0 - rgb_max;
+		let cyan = ((1.0 - r - black) / (1.0 - black)).round();
+		let magenta = ((1.0 - g - black) / (1.0 - black)).round();
+		let yellow = ((1.0 - b - black) / (1.0 - black)).round();
+
+		(cyan, magenta, yellow, black)
+	}
+
+	pub fn get_hsla(&self) -> (f64, f64, f64, f64) {
+		let r = self.red as f64 / 255.0;
+		let g = self.green as f64 / 255.0;
+		let b = self.blue as f64 / 255.0;
 
 		let mut c_max = r;
 		let mut c_min = r;
@@ -268,18 +288,65 @@ impl Color {
 			s = c_delta / (1.0 - (2.0 * l - 1.0).abs());
 		}
 
-		(h, s, l)
+		(h, s, l, self.alpha as f64 / 255.0)
 	}
 
-	fn get_rgb_from_hsl(h: f64, s: f64, l: f64) -> Result<(u8, u8, u8), String> {
+	pub fn get_hwba(&self) -> (f64, f64, f64, f64) {
+		let r = self.red as f64 / 255.0;
+		let g = self.green as f64 / 255.0;
+		let b = self.blue as f64 / 255.0;
+		
+		let white = if r < g && r < b {
+			r
+		} else if g < r && g < b {
+			g
+		} else {
+			b
+		};
+		let value = if r > g && r > b {
+			r
+		} else if g > r && g > b {
+			g
+		} else {
+			b
+		};
+		let black = 1.0 - value;
+		let f = if r == white {
+			g - b
+		} else if g == white {
+			b - r
+		} else {
+			r - g
+		};
+		let i = if r == white {
+			3.0
+		} else if g == white {
+			5.0
+		} else {
+			1.0
+		};
+		
+		let mut h = (i - f / (value - white)) * 60.0;
+		if h == 360.0 {
+			h = 0.0;
+		}
+
+		(h, white, black, self.alpha as f64 / 255.0)
+	}
+
+	pub fn get_rgba(&self) -> (f64, f64, f64, f64) {
+		(self.red as f64 / 255.0, self.green as f64 / 255.0, self.blue as f64 / 255.0, self.alpha as f64 / 255.0)
+	}
+
+	fn get_rgb_from_hsl<'a>(h: f64, s: f64, l: f64) -> Result<(u8, u8, u8), &'a str> {
 		if h < 0.0 || h > 360.0 {
-			return Err(String::from("h must be between 0.0 and 360.0."));
+			return Err("h must be between 0.0 and 360.0.");
 		}
 		if s < 0.0 || s > 1.0 {
-			return Err(String::from("s must be between 0.0 and 1.0."));
+			return Err("s must be between 0.0 and 1.0.");
 		}
 		if l < 0.0 || l > 1.0 {
-			return Err(String::from("l must be between 0.0 and 1.0."));
+			return Err("l must be between 0.0 and 1.0.");
 		}
 
 		let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
@@ -316,18 +383,18 @@ impl Color {
 		Ok((r, g, b))
 	}
 
-	fn get_rgb_from_hwb(mut h: f64, mut w: f64, mut b: f64) -> Result<[u8; 3], String> {
+	fn get_rgb_from_hwb<'a>(mut h: f64, mut w: f64, mut b: f64) -> Result<(u8, u8, u8), &'a str> {
 		if h < 0.0 || h > 360.0 {
-			return Err(String::from("h must be between 0.0 and 360.0."));
+			return Err("h must be between 0.0 and 360.0.");
 		}
 
 		w = w / 100.0;
 		b = b / 100.0;
 		if w < 0.0 || w > 1.0 {
-			return Err(String::from("w must be between 0.0 and 1.0."));
+			return Err("w must be between 0.0 and 1.0.");
 		}
 		if b < 0.0 || b > 1.0 {
-			return Err(String::from("b must be between 0.0 and 1.0."));
+			return Err("b must be between 0.0 and 1.0.");
 		}
 
 		h = h / 60.0;
@@ -372,7 +439,7 @@ impl Color {
 		let g = (g1 * 255.0).round() as u8;
 		let b = (b1 * 255.0).round() as u8;
 
-		Ok([r, g, b])
+		Ok((r, g, b))
 	}
 
 	pub fn colorize(&self, color: Color) -> Color {
@@ -381,6 +448,13 @@ impl Color {
 			red: (self.red as u16 * color.red as u16 / 255) as u8,
 			green: (self.green as u16 * color.green as u16 / 255) as u8,
 			blue: (self.blue as u16 * color.blue as u16 / 255) as u8
+		}
+	}
+
+	pub fn colorize_string(&self, color: &str) -> Result<Color, &str> {
+		match Color::new_string(color) {
+			Some(color) => Ok(self.colorize(color)),
+			None => Err("unable to parse color to colorize.")
 		}
 	}
 
@@ -394,8 +468,8 @@ impl Color {
 	}
 
 	pub fn invert_luminescence(&self) -> Color {
-		let hsl = Color::get_hsl_from_rgb(self.red, self.green, self.blue);
-		Color::new_hsl(hsl.0, hsl.1, 1.0 - hsl.2).unwrap()
+		let hsla = self.get_hsla();
+		Color::new_hsl(hsla.0, hsla.1, 1.0 - hsla.2).unwrap()
 	}
 
 	pub fn to_hex_string(&self) -> String {
@@ -426,103 +500,46 @@ impl Color {
 	}
 
 	pub fn to_cmyk_string(&self) -> String {
-		let mut cmyk = String::from("cmyk(");
+		let cmyk = self.get_cmyk();
 
-		let r = self.red as f64 / 255.0;
-		let g = self.green as f64 / 255.0;
-		let b = self.blue as f64 / 255.0;
-		let mut rgb_max = r;
-		if g > rgb_max {
-			rgb_max = g;
-		}
-		if b > rgb_max {
-			rgb_max = b;
-		}
-		let black = 1.0 - rgb_max;
-		
-		let cyan = ((1.0 - r - black) / (1.0 - black) * 100.0).round();
-		let magenta = ((1.0 - g - black) / (1.0 - black) * 100.0).round();
-		let yellow = ((1.0 - b - black) / (1.0 - black) * 100.0).round();
-
-		cmyk.push_str(format!("{}%, {}%, {}%, {}%", cyan, magenta, yellow, black).as_str());
-		cmyk.push_str(")");
-
-		cmyk
+		let mut cmyk_string = String::from("cmyk(");
+		cmyk_string.push_str(format!("{}%, {}%, {}%, {}%", cmyk.0 * 100.0, cmyk.1 * 100.0, cmyk.2 * 100.0, cmyk.3).as_str());
+		cmyk_string.push_str(")");
+		cmyk_string
 	}
 
 	pub fn to_hsl_string(&self) -> String {
+		let hsla = self.get_hsla();
+
 		let mut hsl_string = String::from("hsl");
 		if self.alpha != 255 {
 			hsl_string.push_str("a");
 		}
 		hsl_string.push_str("(");
-
-		let hsl = Color::get_hsl_from_rgb(self.red, self.green, self.blue);
-
-		hsl_string.push_str(format!("{}, {}%, {}%", hsl.0, hsl.1 * 100.0, hsl.2 * 100.0).as_str());
+		hsl_string.push_str(format!("{}, {}%, {}%", hsla.0, hsla.1 * 100.0, hsla.2 * 100.0).as_str());
 		if self.alpha != 255 {
 			// round with a precision of 2 decimals.
 			hsl_string.push_str(format!(", {}", ((self.alpha as f64) / 255.0 * 100.0).round() / 100.0).as_str());
 		}
 		hsl_string.push_str(")");
-
 		hsl_string
 	}
 
 	pub fn to_hwb_string(&self) -> String {
-		let mut hwb = String::from("hwb");
+		let hwba = self.get_hwba();
+
+		let mut hwb_string = String::from("hwb");
 		if self.alpha != 255 {
-			hwb.push_str("a");
+			hwb_string.push_str("a");
 		}
-		hwb.push_str("(");
-
-		let r = self.red as f64 / 255.0;
-		let g = self.green as f64 / 255.0;
-		let b = self.blue as f64 / 255.0;
-		
-		let white = if r < g && r < b {
-			r
-		} else if g < r && g < b {
-			g
-		} else {
-			b
-		};
-		let value = if r > g && r > b {
-			r
-		} else if g > r && g > b {
-			g
-		} else {
-			b
-		};
-		let black = 1.0 - value;
-		let f = if r == white {
-			g - b
-		} else if g == white {
-			b - r
-		} else {
-			r - g
-		};
-		let i = if r == white {
-			3.0
-		} else if g == white {
-			5.0
-		} else {
-			1.0
-		};
-		
-		let mut h = ((i - f / (value - white)) * 60.0).round() as u16;
-		if h == 360 {
-			h = 0;
-		}
-
-		hwb.push_str(format!("{}, {}%, {}%", h, white, black).as_str());
+		hwb_string.push_str("(");
+		hwb_string.push_str(format!("{}, {}%, {}%", hwba.0.round() as u16, hwba.1, hwba.2).as_str());
 		if self.alpha != 255 {
 			// round with a precision of 2 decimals.
-			hwb.push_str(format!(", {}", ((self.alpha as f64) / 255.0 * 100.0).round() / 100.0).as_str());
+			hwb_string.push_str(format!(", {}", (hwba.3 * 100.0).round() / 100.0).as_str());
 		}
-		hwb.push_str(")");
-
-		hwb
+		hwb_string.push_str(")");
+		hwb_string
 	}
 
 	fn try_parse_cmyk(string: &str) -> Option<Color> {
@@ -670,7 +687,7 @@ impl Color {
 				let mut b: f64 = String::from(&cap[4]).parse().unwrap();
 				let rgb_result = Color::get_rgb_from_hwb(h, w, b);
 				match rgb_result {
-					Ok(rgb) => Some(Color::new_rgb(rgb[0], rgb[1], rgb[2])),
+					Ok(rgb) => Some(Color::new_rgb(rgb.0, rgb.1, rgb.2)),
 					Err(_) => None
 				}
 			},
@@ -695,7 +712,7 @@ impl Color {
 				let a = (a_float * 255.0).round() as u8;
 				let rgb_result = Color::get_rgb_from_hwb(h, w, b);
 				match rgb_result {
-					Ok(rgb) => Some(Color::new_rgba(rgb[0], rgb[1], rgb[2], a)),
+					Ok(rgb) => Some(Color::new_rgba(rgb.0, rgb.1, rgb.2, a)),
 					Err(_) => None
 				}
 			},

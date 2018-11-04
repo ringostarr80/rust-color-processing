@@ -1,6 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
+use std::f64::consts::PI;
 
 pub struct Color {
 	pub alpha: u8,
@@ -47,6 +48,13 @@ impl Color {
 					blue: rgb.2
 				})
 			},
+			Err(message) => Err(message)
+		}
+	}
+
+	pub fn new_hsv<'a>(h: f64, s: f64, v: f64) -> Result<Color, &'a str> {
+		match Color::get_rgb_from_hsv(h, s, v) {
+			Ok(rgb) => Ok(Color {alpha: 255, red: rgb.0, green: rgb.1, blue: rgb.2}),
 			Err(message) => Err(message)
 		}
 	}
@@ -224,6 +232,9 @@ impl Color {
 			color = Color::try_parse_hsla(string);
 		}
 		if color.is_none() {
+			color = Color::try_parse_hsv(string);
+		}
+		if color.is_none() {
 			color = Color::try_parse_hwb(string);
 		}
 		if color.is_none() {
@@ -251,6 +262,67 @@ impl Color {
 		let yellow = ((1.0 - b - black) / (1.0 - black)).round();
 
 		(cyan, magenta, yellow, black)
+	}
+
+	pub fn get_lab(&self) -> (f64, f64, f64) {
+		let mut red = self.red as f64 / 255.0;
+		let mut green = self.green as f64 / 255.0;
+		let mut blue = self.blue as f64 / 255.0;
+
+		red = if red > 0.04045 {
+			((red + 0.055) / 1.055).powf(2.4)
+		} else {
+			(red / 12.92)
+		};
+		green = if green > 0.04045 {
+			((green + 0.055) / 1.055).powf(2.4)
+		} else {
+			(green / 12.92)
+		};
+		blue = if blue > 0.04045 {
+			((blue + 0.055) / 1.055).powf(2.4)
+		} else {
+			(blue / 12.92)
+		};
+
+		let mut x = (red * 0.4124) + (green * 0.3576) + (blue * 0.1805);
+		let mut y = (red * 0.2126) + (green * 0.7152) + (blue * 0.0722);
+		let mut z = (red * 0.0193) + (green * 0.1192) + (blue * 0.9505);
+
+		x*= 100.0;
+		y*= 100.0;
+		z*= 100.0;
+
+		x/= 95.047;
+		y/= 100.0;
+		z/= 108.883;
+
+		x = if x > 0.008856 {
+			x.powf(1.0 / 3.0)
+		} else {
+			(7.787 * x) + (16.0 / 116.0)
+		};
+		y = if y > 0.008856 {
+			y.powf(1.0 / 3.0)
+		} else {
+			(7.787 * y) + (16.0 / 116.0)
+		};
+		z = if z > 0.008856 {
+			z.powf(1.0 / 3.0)
+		} else {
+			(7.787 * z) + (16.0 / 116.0)
+		};
+
+		((116.0 * y) - 16.0, 500.0 * (x - y), 200.0 * (y - z))
+	}
+
+	pub fn get_lch(&self) -> (f64, f64, f64) {
+		let lab = self.get_lab();
+
+		let c = (lab.1 * lab.1 + lab.2 * lab.2).sqrt();
+		let h = (lab.2.atan2(lab.1) * 180.0 / PI + 360.0).round() % 360.0;
+
+		(lab.0, c, h)
 	}
 
 	pub fn get_hsla(&self) -> (f64, f64, f64, f64) {
@@ -289,6 +361,59 @@ impl Color {
 		}
 
 		(h, s, l, self.alpha as f64 / 255.0)
+	}
+
+	pub fn get_hsv(&self) -> (f64, f64, f64) {
+		let mut min = 1.0;
+		let mut max = 0.0;
+
+		let red = self.red as f64 / 255.0;
+		let green = self.green as f64 / 255.0;
+		let blue = self.blue as f64 / 255.0;
+
+		if red < min {
+			min = red;
+		}
+		if green < min {
+			min = green;
+		}
+		if blue < min {
+			min = blue;
+		}
+		if red > max {
+			max = red;
+		}
+		if green > max {
+			max = green;
+		}
+		if blue > max {
+			max = blue;
+		}
+
+		if max == 0.0 {
+			return (0.0, 0.0, 0.0);
+		}
+		
+		let v = max; // v
+		let delta = max - min;
+		let s = delta / max; // s
+		let mut h = if red == max {
+			(green - blue) / delta
+		} else if green == max {
+			2.0 + (blue - red) / delta
+		} else {
+			4.0 + (red - green) / delta
+		};
+		h *= 60.0; // degrees
+		if h < 0.0 {
+			h += 360.0;
+		}
+
+		if h == std::f64::NAN {
+			h = 0.0;
+		}
+
+		(h, s, v)
 	}
 
 	pub fn get_hwba(&self) -> (f64, f64, f64, f64) {
@@ -352,6 +477,51 @@ impl Color {
 		let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
 		let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
 		let m = l - c / 2.0;
+
+		let mut r1 = 0.0;
+		let mut g1 = 0.0;
+		let mut b1 = 0.0;
+		if (h >= 0.0 && h < 60.0) || h == 360.0 {
+			r1 = c;
+			g1 = x;
+		} else if h >= 60.0 && h < 120.0 {
+			r1 = x;
+			g1 = c;
+		} else if h >= 120.0 && h < 180.0 {
+			g1 = c;
+			b1 = x;
+		} else if h >= 180.0 && h < 240.0 {
+			g1 = x;
+			b1 = c;
+		} else if h >= 240.0 && h < 300.0 {
+			r1 = x;
+			b1 = c;
+		} else if h >= 300.0 && h < 360.0 {
+			r1 = c;
+			b1 = x;
+		}
+
+		let r = ((r1 + m) * 255.0).round() as u8;
+		let g = ((g1 + m) * 255.0).round() as u8;
+		let b = ((b1 + m) * 255.0).round() as u8;
+
+		Ok((r, g, b))
+	}
+
+	fn get_rgb_from_hsv<'a>(h: f64, s: f64, v: f64) -> Result<(u8, u8, u8), &'a str> {
+		if h < 0.0 || h > 360.0 {
+			return Err("h must be between 0.0 and 360.0!");
+		}
+		if s < 0.0 || s > 1.0 {
+			return Err("s must be between 0.0 and 1.0!");
+		}
+		if v < 0.0 || v > 1.0 {
+			return Err("v must be between 0.0 and 1.0!");
+		}
+
+		let c = v * s;
+		let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
+		let m = v - c;
 
 		let mut r1 = 0.0;
 		let mut g1 = 0.0;
@@ -525,6 +695,23 @@ impl Color {
 		hsl_string
 	}
 
+	pub fn to_hsv_string(&self) -> String {
+		let hsv = self.get_hsv();
+
+		let mut hsv_string = String::from("hsv");
+		if self.alpha != 255 {
+			hsv_string.push_str("a");
+		}
+		hsv_string.push_str("(");
+		hsv_string.push_str(format!("{}, {}%, {}%", hsv.0, hsv.1 * 100.0, hsv.2 * 100.0).as_str());
+		if self.alpha != 255 {
+			// round with a precision of 2 decimals.
+			hsv_string.push_str(format!(", {}", ((self.alpha as f64) / 255.0 * 100.0).round() / 100.0).as_str());
+		}
+		hsv_string.push_str(")");
+		hsv_string
+	}
+
 	pub fn to_hwb_string(&self) -> String {
 		let hwba = self.get_hwba();
 
@@ -540,6 +727,48 @@ impl Color {
 		}
 		hwb_string.push_str(")");
 		hwb_string
+	}
+
+	pub fn interpolate_hsv(&self, color: Color, interpolation: f64) -> Result<Color, &str> {
+		if interpolation < 0.0 || interpolation > 1.0 {
+			return Err("interpolation must be between 0.0 and 1.0!");
+		}
+
+		let hsv = self.get_hsv();
+		let first_h = hsv.0 / 255.0;
+		let first_s = hsv.1;
+		let first_v = hsv.2;
+		//let firstAlpha = self.alpha;
+
+		let second_hsv = color.get_hsv();
+		let second_h = second_hsv.0 / 255.0;
+		let second_s = second_hsv.1;
+		let second_v = second_hsv.2;
+		//let secondAlpha = color.alpha;
+
+		let new_h = first_h + (second_h - first_h) * interpolation;
+		let new_s = first_s + (second_s - first_s) * interpolation;
+		let new_v = first_v + (second_v - first_v) * interpolation;
+
+		Color::new_hsv(new_h * 255.0, new_s, new_v)
+	}
+
+	pub fn interpolate_rgb(&self, color: Color, interpolation: f64) -> Result<Color, &str> {
+		if interpolation < 0.0 || interpolation > 1.0 {
+			return Err("interpolation must be between 0.0 and 1.0!");
+		}
+
+		let interpolated_red = (self.red as f64 + (color.red - self.red) as f64 * interpolation).round() as u8;
+		let interpolated_green = (self.green as f64 + (color.green - self.green) as f64 * interpolation).round() as u8;
+		let interpolated_blue = (self.blue as f64 + (color.blue - self.blue) as f64 * interpolation).round() as u8;
+		let interpolated_alpha = (self.alpha as f64 + (color.alpha - self.alpha) as f64 * interpolation).round() as u8;
+		
+		Ok(Color{
+			alpha: interpolated_alpha,
+			red: interpolated_red,
+			green: interpolated_green,
+			blue: interpolated_blue
+		})
 	}
 
 	fn try_parse_cmyk(string: &str) -> Option<Color> {
@@ -668,6 +897,26 @@ impl Color {
 				let rgb_result = Color::get_rgb_from_hsl(h, s / 100.0, l / 100.0);
 				match rgb_result {
 					Ok(rgb) => Some(Color::new_rgba(rgb.0, rgb.1, rgb.2, a)),
+					Err(_) => None
+				}
+			},
+			None => None
+		}
+	}
+
+	fn try_parse_hsv(string: &str) -> Option<Color> {
+		lazy_static! {
+			static ref re_hsv: Regex = Regex::new(r"^hsv\s*\(\s*(\d{1,3})\s*,\s*(\d+(\.\d+)?)\s*%?\s*,\s*(\d+(\.\d+)?)\s*%?\s*\)$").unwrap();
+		}
+		let caps = re_hsv.captures(string);
+		match caps {
+			Some(cap) => {
+				let mut h: f64 = String::from(&cap[1]).parse().unwrap();
+				let mut s: f64 = String::from(&cap[2]).parse().unwrap();
+				let mut l: f64 = String::from(&cap[4]).parse().unwrap();
+				let rgb_result = Color::get_rgb_from_hsv(h, s / 100.0, l / 100.0);
+				match rgb_result {
+					Ok(rgb) => Some(Color::new_rgb(rgb.0, rgb.1, rgb.2)),
 					Err(_) => None
 				}
 			},

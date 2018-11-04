@@ -148,6 +148,14 @@ mod tests {
     }
 
     #[test]
+    fn color_hsv_string() {
+        let red_color = Color::new_string("hsv(0, 100%, 100%)").unwrap();
+        assert_eq!(red_color.red, 255);
+        assert_eq!(red_color.green, 0);
+        assert_eq!(red_color.blue, 0);
+    }
+
+    #[test]
     fn color_hwb_string() {
         let red_color = Color::new_string("hwb(0, 0%, 0%)").unwrap();
         assert_eq!(red_color.red, 255);
@@ -236,6 +244,16 @@ mod tests {
 
         let transparent_green_color = Color::new_string("#8000FF00").unwrap();
         assert_eq!(transparent_green_color.to_hsl_string(), "hsla(120, 100%, 50%, 0.5)");
+    }
+
+    #[test]
+    fn color_to_hsv_string()
+    {
+        let red_color = Color::new_string("red").unwrap();
+        assert_eq!(red_color.to_hsv_string(), "hsv(0, 100%, 100%)");
+
+        //let transparent_green_color = Color::new_string("#8000FF00").unwrap();
+        //assert_eq!(transparent_green_color.to_hsl_string(), "hsva(120, 100%, 50%, 0.5)");
     }
 
     #[test]

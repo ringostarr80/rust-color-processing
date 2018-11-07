@@ -11,6 +11,19 @@ pub struct Color {
 }
 
 impl Color {
+	/// Gets a new Color struct, that represents the "black"-color.
+	/// 
+	/// # Example
+	/// ```
+	/// use locr::locr::Color;
+	/// 
+	/// let black = Color::new();
+	/// 
+	/// assert_eq!(0, black.red);
+	/// assert_eq!(0, black.green);
+	/// assert_eq!(0, black.blue);
+	/// assert_eq!(255, black.alpha);
+	/// ```
 	pub fn new() -> Color {
 		Color {
 			alpha: 255,

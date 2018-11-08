@@ -1,5 +1,5 @@
 [package]
-name = "locr"
+name = "rl"
 version = "0.1.0"
 authors = ["Ringo Leese <webmaster@ringoleese.de>"]
 

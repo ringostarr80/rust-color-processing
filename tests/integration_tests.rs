@@ -1,6 +1,6 @@
-extern crate locr;
+extern crate rl;
 
-use locr::locr::Color;
+use rl::Color;
 
 #[test]
 fn test_new() {

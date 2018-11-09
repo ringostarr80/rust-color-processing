@@ -352,42 +352,70 @@ impl Color {
 		}
 	}
 
+    /// Gets a new Color struct, that represents a color by a string.
+    /// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let red = Color::new_string("red").unwrap();
+	/// 
+	/// assert_eq!(255, red.red);
+	/// assert_eq!(0, red.green);
+	/// assert_eq!(0, red.blue);
+	/// assert_eq!(255, red.alpha);
+    /// 
+    /// let green = Color::new_string("GN").unwrap();
+	/// 
+	/// assert_eq!(0, green.red);
+	/// assert_eq!(128, green.green);
+	/// assert_eq!(0, green.blue);
+	/// assert_eq!(255, green.alpha);
+    /// 
+    /// let blue = Color::new_string("#0000ff").unwrap();
+	/// 
+	/// assert_eq!(0, blue.red);
+	/// assert_eq!(0, blue.green);
+	/// assert_eq!(255, blue.blue);
+	/// assert_eq!(255, blue.alpha);
+    /// 
+    /// let transparent_blue = Color::new_string("#0000ff80").unwrap();
+	/// 
+	/// assert_eq!(0, transparent_blue.red);
+	/// assert_eq!(0, transparent_blue.green);
+	/// assert_eq!(255, transparent_blue.blue);
+	/// assert_eq!(128, transparent_blue.alpha);
+    /// 
+    /// let yellow = Color::new_string("#ff0").unwrap();
+	/// 
+	/// assert_eq!(255, yellow.red);
+	/// assert_eq!(255, yellow.green);
+	/// assert_eq!(0, yellow.blue);
+	/// assert_eq!(255, yellow.alpha);
+    /// 
+    /// let transparent_yellow = Color::new_string("#ff07").unwrap();
+	/// 
+	/// assert_eq!(255, transparent_yellow.red);
+	/// assert_eq!(255, transparent_yellow.green);
+	/// assert_eq!(0, transparent_yellow.blue);
+	/// assert_eq!(119, transparent_yellow.alpha);
+	/// ```
 	pub fn new_string(string: &str) -> Option<Color> {
-		let mut color = Color::try_parse_known_color(string);
-		if color.is_none() {
-			color = Color::try_parse_abbr_color(string);
-		}
-		if color.is_none() {
-			color = Color::try_parse_hex(string);
-		}
-		if color.is_none() {
-			color = Color::try_parse_short_hex(string);
-		}
-		if color.is_none() {
-			color = Color::try_parse_rgb(string);
-		}
-		if color.is_none() {
-			color = Color::try_parse_rgba(string);
-		}
-		if color.is_none() {
-			color = Color::try_parse_cmyk(string);
-		}
-		if color.is_none() {
-			color = Color::try_parse_hsl(string);
-		}
-		if color.is_none() {
-			color = Color::try_parse_hsla(string);
-		}
-		if color.is_none() {
-			color = Color::try_parse_hsv(string);
-		}
-		if color.is_none() {
-			color = Color::try_parse_hwb(string);
-		}
-		if color.is_none() {
-			color = Color::try_parse_hwba(string);
-		}
-
+        let trimmed_string = string.trim();
+        let normalized_string = trimmed_string.to_lowercase();
+        let normalized_str = normalized_string.as_str();
+		let color = Color::try_parse_known_color(normalized_str)
+            .or_else(|| Color::try_parse_abbr_color(normalized_str))
+            .or_else(|| Color::try_parse_hex(normalized_str))
+            .or_else(|| Color::try_parse_rgb(normalized_str))
+            .or_else(|| Color::try_parse_rgba(normalized_str))
+            .or_else(|| Color::try_parse_cmyk(normalized_str))
+            .or_else(|| Color::try_parse_hsl(normalized_str))
+            .or_else(|| Color::try_parse_hsla(normalized_str))
+            .or_else(|| Color::try_parse_hsv(normalized_str))
+            .or_else(|| Color::try_parse_hwb(normalized_str))
+            .or_else(|| Color::try_parse_hwba(normalized_str));
+            
 		return color;
 	}
 
@@ -791,12 +819,12 @@ impl Color {
 
 	pub fn to_hex_string(&self) -> String {
 		let mut hex = String::from("#");
-		if self.alpha != 255 {
-			hex.push_str(format!("{:01$X}", self.alpha, 2).as_str());
-		}
 		hex.push_str(format!("{:01$X}", self.red, 2).as_str());
 		hex.push_str(format!("{:01$X}", self.green, 2).as_str());
 		hex.push_str(format!("{:01$X}", self.blue, 2).as_str());
+        if self.alpha != 255 {
+			hex.push_str(format!("{:01$X}", self.alpha, 2).as_str());
+		}
 		hex
 	}
 
@@ -945,61 +973,62 @@ impl Color {
 
 	fn try_parse_hex(string: &str) -> Option<Color> {
 		lazy_static! {
-			static ref re_hex: Regex = Regex::new(r"^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})?$").unwrap();
+			static ref re_hex: Regex = Regex::new(r"^#?([0-9a-f]{3,8})$").unwrap();
 		}
 		let caps = re_hex.captures(string);
 		match caps {
 			Some(cap) => {
-				let mut a = 255;
-				let r_index = match cap.get(4) {
-					Some(_) => {
-						a = u8::from_str_radix(&cap[1], 16).unwrap();
-						2
-					},
-					None => 1
-				};
-				let r = u8::from_str_radix(&cap[r_index], 16).unwrap();
-				let g = u8::from_str_radix(&cap[r_index + 1], 16).unwrap();
-				let b = u8::from_str_radix(&cap[r_index + 2], 16).unwrap();
+                if cap[1].len() == 5 || cap[1].len() == 7 {
+                    return None;
+                }
 
-				Some(Color::new_rgba(r, g, b, a))
-			},
-			None => None
-		}
-	}
+				let has_alpha = if cap[1].len() == 4 || cap[1].len() == 8 {
+                    true
+                } else {
+                    false
+                };
+                let expand_values = if cap[1].len() == 3 || cap[1].len() == 4 {
+                    true
+                } else {
+                    false
+                };
 
-	fn try_parse_short_hex(string: &str) -> Option<Color> {
-		lazy_static! {
-			static ref re_short_hex: Regex = Regex::new(r"^#?([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})?$").unwrap();
-		}
-		let caps = re_short_hex.captures(string);
-		match caps {
-			Some(cap) => {
-				let mut a = 255;
-				let r_index = match cap.get(4) {
-					Some(_) => {
-						let mut a_hex = String::from(&cap[1]);
-						let a_hex2 = a_hex.clone();
-						a_hex.push_str(&a_hex2);
-						a = u8::from_str_radix(a_hex.as_str(), 16).unwrap();
-						2
-					},
-					None => 1
-				};
+                let mut r_hex: String;
+                let mut g_hex: String;
+                let mut b_hex: String;
+                let mut a_hex = String::from("ff");
+                if expand_values {
+                    r_hex = String::from(&cap[1][0..1]);
+					let r_hex_cloned = r_hex.clone();
+                    r_hex.push_str(&r_hex_cloned);
 
-				let mut r_hex = String::from(&cap[r_index]);
-				let r_hex2 = r_hex.clone();
-				r_hex.push_str(&r_hex2);
-				let mut g_hex = String::from(&cap[r_index + 1]);
-				let g_hex2 = g_hex.clone();
-				g_hex.push_str(&g_hex2);
-				let mut b_hex = String::from(&cap[r_index + 2]);
-				let b_hex2 = b_hex.clone();
-				b_hex.push_str(&b_hex2);
+                    g_hex = String::from(&cap[1][1..2]);
+					let g_hex_cloned = g_hex.clone();
+                    g_hex.push_str(&g_hex_cloned);
 
+                    b_hex = String::from(&cap[1][2..3]);
+					let b_hex_cloned = b_hex.clone();
+                    b_hex.push_str(&b_hex_cloned);
+
+                    if has_alpha {
+                        a_hex = String::from(&cap[1][3..4]);
+                        let a_hex_cloned = a_hex.clone();
+                        a_hex.push_str(&a_hex_cloned);
+                    }
+                } else {
+                    r_hex = String::from(&cap[1][0..2]);
+                    g_hex = String::from(&cap[1][2..4]);
+                    b_hex = String::from(&cap[1][4..6]);
+                    if has_alpha {
+                        a_hex = String::from(&cap[1][6..8]);
+                    }
+                }
+                
 				let r = u8::from_str_radix(r_hex.as_str(), 16).unwrap();
 				let g = u8::from_str_radix(g_hex.as_str(), 16).unwrap();
 				let b = u8::from_str_radix(b_hex.as_str(), 16).unwrap();
+                let a = u8::from_str_radix(a_hex.as_str(), 16).unwrap();
+
 				Some(Color::new_rgba(r, g, b, a))
 			},
 			None => None
@@ -1154,29 +1183,29 @@ impl Color {
 	}
 
 	fn try_parse_abbr_color(string: &str) -> Option<Color> {
-		match string.to_uppercase().as_ref() {
-			"BK" => Some(Color {alpha: 0xFF, red: 0x00, green: 0x00, blue: 0x00}),
-			"WH" => Some(Color {alpha: 0xFF, red: 0xFF, green: 0xFF, blue: 0xFF}),
-			"GR" => Some(Color {alpha: 0xFF, red: 0x80, green: 0x80, blue: 0x80}),
-			"SI" => Some(Color {alpha: 0xFF, red: 0xC0, green: 0xC0, blue: 0xC0}),
-			"MR" => Some(Color {alpha: 0xFF, red: 0x80, green: 0x00, blue: 0x00}),
-			"RD" => Some(Color {alpha: 0xFF, red: 0xFF, green: 0x00, blue: 0x00}),
-			"GN" => Some(Color {alpha: 0xFF, red: 0x00, green: 0x80, blue: 0x00}),
-			"LI" => Some(Color {alpha: 0xFF, red: 0x00, green: 0xFF, blue: 0x00}),
-			"OL" => Some(Color {alpha: 0xFF, red: 0x80, green: 0x80, blue: 0x00}),
-			"YE" => Some(Color {alpha: 0xFF, red: 0xFF, green: 0xFF, blue: 0x00}),
-			"NA" => Some(Color {alpha: 0xFF, red: 0x00, green: 0x00, blue: 0x80}),
-			"BL" => Some(Color {alpha: 0xFF, red: 0x00, green: 0x00, blue: 0xFF}),
-			"PU" => Some(Color {alpha: 0xFF, red: 0x80, green: 0x00, blue: 0x80}),
-			"FU" => Some(Color {alpha: 0xFF, red: 0xFF, green: 0x00, blue: 0xFF}),
-			"TE" => Some(Color {alpha: 0xFF, red: 0x00, green: 0x80, blue: 0x80}),
-			"AQ" => Some(Color {alpha: 0xFF, red: 0x00, green: 0xFF, blue: 0xFF}),
+		match string {
+			"bk" => Some(Color {alpha: 0xFF, red: 0x00, green: 0x00, blue: 0x00}),
+			"wh" => Some(Color {alpha: 0xFF, red: 0xFF, green: 0xFF, blue: 0xFF}),
+			"gr" => Some(Color {alpha: 0xFF, red: 0x80, green: 0x80, blue: 0x80}),
+			"si" => Some(Color {alpha: 0xFF, red: 0xC0, green: 0xC0, blue: 0xC0}),
+			"mr" => Some(Color {alpha: 0xFF, red: 0x80, green: 0x00, blue: 0x00}),
+			"rd" => Some(Color {alpha: 0xFF, red: 0xFF, green: 0x00, blue: 0x00}),
+			"gn" => Some(Color {alpha: 0xFF, red: 0x00, green: 0x80, blue: 0x00}),
+			"li" => Some(Color {alpha: 0xFF, red: 0x00, green: 0xFF, blue: 0x00}),
+			"ol" => Some(Color {alpha: 0xFF, red: 0x80, green: 0x80, blue: 0x00}),
+			"ye" => Some(Color {alpha: 0xFF, red: 0xFF, green: 0xFF, blue: 0x00}),
+			"na" => Some(Color {alpha: 0xFF, red: 0x00, green: 0x00, blue: 0x80}),
+			"bl" => Some(Color {alpha: 0xFF, red: 0x00, green: 0x00, blue: 0xFF}),
+			"pu" => Some(Color {alpha: 0xFF, red: 0x80, green: 0x00, blue: 0x80}),
+			"fu" => Some(Color {alpha: 0xFF, red: 0xFF, green: 0x00, blue: 0xFF}),
+			"te" => Some(Color {alpha: 0xFF, red: 0x00, green: 0x80, blue: 0x80}),
+			"aq" => Some(Color {alpha: 0xFF, red: 0x00, green: 0xFF, blue: 0xFF}),
 			_ => None
 		}
 	}
 
 	fn try_parse_known_color(string: &str) -> Option<Color> {
-		match string.to_lowercase().as_ref() {
+		match string {
 			"aliceblue" => Some(Color {alpha: 0xFF, red: 0xF0, green: 0xF8, blue: 0xFF}),
 			"antiquewhite"  => Some(Color {alpha: 0xFF, red: 0xFA, green: 0xEB, blue: 0xD7}),
 			"aqua" => Some(Color {alpha: 0xFF, red: 0x00, green: 0xFF, blue: 0xFF}),
@@ -1707,16 +1736,99 @@ mod tests {
     }
 
     #[test]
-    fn color_string() {
-        let green_color = Color::new_string("green").unwrap();
-        assert_eq!(green_color.red, 0);
-        assert_eq!(green_color.green, 128);
-        assert_eq!(green_color.blue, 0);
+    fn color_try_parse_known_color() {
+        let red = Color::new_string("red").unwrap();
+        assert_eq!(red.red, 255);
+        assert_eq!(red.green, 0);
+        assert_eq!(red.blue, 0);
+        assert_eq!(red.alpha, 255);
 
-        let blue_color = Color::new_string("BL").unwrap();
-        assert_eq!(blue_color.red, 0);
-        assert_eq!(blue_color.green, 0);
-        assert_eq!(blue_color.blue, 255);
+        let green = Color::new_string("GREEN").unwrap();
+        assert_eq!(green.red, 0);
+        assert_eq!(green.green, 128);
+        assert_eq!(green.blue, 0);
+        assert_eq!(green.alpha, 255);
+
+        let blue = Color::new_string("BlUe").unwrap();
+        assert_eq!(blue.red, 0);
+        assert_eq!(blue.green, 0);
+        assert_eq!(blue.blue, 255);
+        assert_eq!(blue.alpha, 255);
+
+        let yellow = Color::new_string("Yellow").unwrap();
+        assert_eq!(yellow.red, 255);
+        assert_eq!(yellow.green, 255);
+        assert_eq!(yellow.blue, 0);
+        assert_eq!(yellow.alpha, 255);
+
+        let cyan = Color::new_string("cyan").unwrap();
+        assert_eq!(cyan.red, 0);
+        assert_eq!(cyan.green, 255);
+        assert_eq!(cyan.blue, 255);
+        assert_eq!(cyan.alpha, 255);
+
+        let magenta = Color::new_string("magenta").unwrap();
+        assert_eq!(magenta.red, 255);
+        assert_eq!(magenta.green, 0);
+        assert_eq!(magenta.blue, 255);
+        assert_eq!(magenta.alpha, 255);
+
+        let black = Color::new_string("black").unwrap();
+        assert_eq!(black.red, 0);
+        assert_eq!(black.green, 0);
+        assert_eq!(black.blue, 0);
+        assert_eq!(black.alpha, 255);
+
+        let white = Color::new_string("white").unwrap();
+        assert_eq!(white.red, 255);
+        assert_eq!(white.green, 255);
+        assert_eq!(white.blue, 255);
+        assert_eq!(white.alpha, 255);
+    }
+
+    #[test]
+    fn color_try_parse_abbr_color() {
+        let red = Color::new_string("RD").unwrap();
+        assert_eq!(red.red, 255);
+        assert_eq!(red.green, 0);
+        assert_eq!(red.blue, 0);
+        assert_eq!(red.alpha, 255);
+
+        let green = Color::new_string("gn").unwrap();
+        assert_eq!(green.red, 0);
+        assert_eq!(green.green, 128);
+        assert_eq!(green.blue, 0);
+        assert_eq!(green.alpha, 255);
+
+        let blue = Color::new_string("Bl").unwrap();
+        assert_eq!(blue.red, 0);
+        assert_eq!(blue.green, 0);
+        assert_eq!(blue.blue, 255);
+        assert_eq!(blue.alpha, 255);
+
+        let yellow = Color::new_string("yE").unwrap();
+        assert_eq!(yellow.red, 255);
+        assert_eq!(yellow.green, 255);
+        assert_eq!(yellow.blue, 0);
+        assert_eq!(yellow.alpha, 255);
+
+        let purple = Color::new_string("PU").unwrap();
+        assert_eq!(purple.red, 128);
+        assert_eq!(purple.green, 0);
+        assert_eq!(purple.blue, 128);
+        assert_eq!(purple.alpha, 255);
+
+        let black = Color::new_string("BK").unwrap();
+        assert_eq!(black.red, 0);
+        assert_eq!(black.green, 0);
+        assert_eq!(black.blue, 0);
+        assert_eq!(black.alpha, 255);
+
+        let white = Color::new_string("WH").unwrap();
+        assert_eq!(white.red, 255);
+        assert_eq!(white.green, 255);
+        assert_eq!(white.blue, 255);
+        assert_eq!(white.alpha, 255);
     }
 
     #[test]
@@ -1736,7 +1848,7 @@ mod tests {
         assert_eq!(blue_color.green, 0);
         assert_eq!(blue_color.blue, 255);
 
-        let transparent_white_color = Color::new_string("#80ffffff").unwrap();
+        let transparent_white_color = Color::new_string("#ffffff80").unwrap();
         assert_eq!(transparent_white_color.red, 255);
         assert_eq!(transparent_white_color.green, 255);
         assert_eq!(transparent_white_color.blue, 255);
@@ -1752,7 +1864,7 @@ mod tests {
         assert_eq!(magenta_color.green, 0);
         assert_eq!(magenta_color.blue, 255);
 
-        let transparent_black_color = Color::new_string("#7000").unwrap();
+        let transparent_black_color = Color::new_string("#0007").unwrap();
         assert_eq!(transparent_black_color.red, 0);
         assert_eq!(transparent_black_color.green, 0);
         assert_eq!(transparent_black_color.blue, 0);
@@ -1871,8 +1983,8 @@ mod tests {
         let red_color = Color::new_string("red").unwrap();
         assert_eq!(red_color.to_hex_string(), "#FF0000");
 
-        let transparent_green_color = Color::new_string("#8000FF00").unwrap();
-        assert_eq!(transparent_green_color.to_hex_string(), "#8000FF00");
+        let transparent_green_color = Color::new_string("#00FF0080").unwrap();
+        assert_eq!(transparent_green_color.to_hex_string(), "#00FF0080");
     }
 
     #[test]
@@ -1881,7 +1993,7 @@ mod tests {
         let red_color = Color::new_string("red").unwrap();
         assert_eq!(red_color.to_rgb_string(), "rgb(255, 0, 0)");
 
-        let transparent_green_color = Color::new_string("#8000FF00").unwrap();
+        let transparent_green_color = Color::new_string("#00FF0080").unwrap();
         assert_eq!(transparent_green_color.to_rgb_string(), "rgba(0, 255, 0, 0.5)");
     }
     
@@ -1898,7 +2010,7 @@ mod tests {
         let red_color = Color::new_string("red").unwrap();
         assert_eq!(red_color.to_hsl_string(), "hsl(0, 100%, 50%)");
 
-        let transparent_green_color = Color::new_string("#8000FF00").unwrap();
+        let transparent_green_color = Color::new_string("#00FF0080").unwrap();
         assert_eq!(transparent_green_color.to_hsl_string(), "hsla(120, 100%, 50%, 0.5)");
     }
 
@@ -1918,7 +2030,7 @@ mod tests {
         let red_color = Color::new_string("red").unwrap();
         assert_eq!(red_color.to_hwb_string(), "hwb(0, 0%, 0%)");
 
-        let transparent_green_color = Color::new_string("#8000FF00").unwrap();
+        let transparent_green_color = Color::new_string("#00FF0080").unwrap();
         assert_eq!(transparent_green_color.to_hwb_string(), "hwba(120, 0%, 0%, 0.5)");
     }
 

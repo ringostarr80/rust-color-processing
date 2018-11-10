@@ -399,6 +399,34 @@ impl Color {
 	/// assert_eq!(255, transparent_yellow.green);
 	/// assert_eq!(0, transparent_yellow.blue);
 	/// assert_eq!(119, transparent_yellow.alpha);
+    /// 
+    /// let red = Color::new_string("rgb(255, 0, 0)").unwrap();
+    /// 
+    /// assert_eq!(255, red.red);
+	/// assert_eq!(0, red.green);
+	/// assert_eq!(0, red.blue);
+	/// assert_eq!(255, red.alpha);
+    /// 
+    /// let green = Color::new_string("rgb(0%, 100%, 0%)").unwrap();
+    /// 
+    /// assert_eq!(0, green.red);
+	/// assert_eq!(255, green.green);
+	/// assert_eq!(0, green.blue);
+	/// assert_eq!(255, green.alpha);
+    /// 
+    /// let blue = Color::new_string("rgba(0, 0, 255, 0.5)").unwrap();
+    /// 
+    /// assert_eq!(0, blue.red);
+	/// assert_eq!(0, blue.green);
+	/// assert_eq!(255, blue.blue);
+	/// assert_eq!(128, blue.alpha);
+    /// 
+    /// let yellow = Color::new_string("rgba(100%, 100%, 0%, 0.5)").unwrap();
+    /// 
+    /// assert_eq!(255, yellow.red);
+	/// assert_eq!(255, yellow.green);
+	/// assert_eq!(0, yellow.blue);
+	/// assert_eq!(128, yellow.alpha);
 	/// ```
 	pub fn new_string(string: &str) -> Option<Color> {
         let trimmed_string = string.trim();
@@ -407,9 +435,7 @@ impl Color {
 		let color = Color::try_parse_known_color(normalized_str)
             .or_else(|| Color::try_parse_abbr_color(normalized_str))
             .or_else(|| Color::try_parse_hex(normalized_str))
-            .or_else(|| Color::try_parse_rgb(normalized_str))
-            .or_else(|| Color::try_parse_rgba(normalized_str))
-            .or_else(|| Color::try_parse_cmyk(normalized_str))
+            .or_else(|| Color::try_parse_css_function(normalized_str))
             .or_else(|| Color::try_parse_hsl(normalized_str))
             .or_else(|| Color::try_parse_hsla(normalized_str))
             .or_else(|| Color::try_parse_hsv(normalized_str))
@@ -637,6 +663,39 @@ impl Color {
 	pub fn get_rgba(&self) -> (f64, f64, f64, f64) {
 		(self.red as f64 / 255.0, self.green as f64 / 255.0, self.blue as f64 / 255.0, self.alpha as f64 / 255.0)
 	}
+
+    fn get_rgb_from_cmyk<'a>(mut c: f64, mut m: f64, mut y: f64, mut k: f64) -> (u8, u8, u8) {
+        if c < 0.0 {
+            c = 0.0;
+        }
+        if c > 1.0 {
+            c = 1.0;
+        }
+        if m < 0.0 {
+            m = 0.0;
+        }
+        if m > 1.0 {
+            m = 1.0;
+        }
+        if y < 0.0 {
+            y = 0.0;
+        }
+        if y > 1.0 {
+            y = 1.0;
+        }
+        if k < 0.0 {
+            k = 0.0;
+        }
+        if k > 1.0 {
+            k = 1.0;
+        }
+
+        let r = (255.0 * (1.0 - c) * (1.0 - k)).round() as u8;
+        let g = (255.0 * (1.0 - m) * (1.0 - k)).round() as u8;
+        let b = (255.0 * (1.0 - y) * (1.0 - k)).round() as u8;
+
+        (r, g, b)
+    }
 
 	fn get_rgb_from_hsl<'a>(h: f64, s: f64, l: f64) -> Result<(u8, u8, u8), &'a str> {
 		if h < 0.0 || h > 360.0 {
@@ -946,31 +1005,6 @@ impl Color {
 		})
 	}
 
-	fn try_parse_cmyk(string: &str) -> Option<Color> {
-		lazy_static! {
-			static ref re_cmyk: Regex = Regex::new(r"^cmyk\s*\(\s*(\d+(\.\d+)?)\s*%?\s*,\s*(\d+(\.\d+)?)\s*%?\s*,\s*(\d+(\.\d+)?)\s*%?\s*,\s*(\d+(\.\d+)?)\s*%?\s*\)$").unwrap();
-		}
-		let caps = re_cmyk.captures(string);
-		match caps {
-			Some(cap) => {
-				let cyan: f64 = String::from(&cap[1]).parse().unwrap();
-				let magenta: f64 = String::from(&cap[3]).parse().unwrap();
-				let yellow: f64 = String::from(&cap[5]).parse().unwrap();
-				let black: f64 = String::from(&cap[7]).parse().unwrap();
-				if cyan > 100.0 || magenta > 100.0 || yellow > 100.0 || black > 100.0 {
-					return None;
-				}
-
-				let r = (255.0 * (1.0 - cyan / 100.0) * (1.0 - black / 100.0)).round() as u8;
-				let g = (255.0 * (1.0 - magenta / 100.0) * (1.0 - black / 100.0)).round() as u8;
-				let b = (255.0 * (1.0 - yellow / 100.0) * (1.0 - black / 100.0)).round() as u8;
-
-				Some(Color::new_rgb(r, g, b))
-			},
-			None => None
-		}
-	}
-
 	fn try_parse_hex(string: &str) -> Option<Color> {
 		lazy_static! {
 			static ref re_hex: Regex = Regex::new(r"^#?([0-9a-f]{3,8})$").unwrap();
@@ -1145,41 +1179,140 @@ impl Color {
 		}
 	}
 
-	fn try_parse_rgb(string: &str) -> Option<Color> {
+    fn try_parse_css_function(string: &str) -> Option<Color> {
 		lazy_static! {
-			static ref re_rgb: Regex = Regex::new(r"^rgb\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$").unwrap();
+			static ref re_css_function: Regex = Regex::new(r"^(cmyk|rgba?|hsla?|hsva?|hwba?)\s*\(\s*(-?\d+(\.\d+)?)\s*(%|°)?\s*,\s*(-?\d+(\.\d+)?)\s*(%)?\s*,\s*(-?\d+(\.\d+)?)\s*(%)?\s*(,\s*(-?\d+(\.\d+)?)\s*(%)?\s*)?\)$").unwrap();
 		}
-		let caps = re_rgb.captures(string);
-		match caps {
-			Some(cap) => {
-				let r: u8 = String::from(&cap[1]).parse().unwrap();
-				let g: u8 = String::from(&cap[2]).parse().unwrap();
-				let b: u8 = String::from(&cap[3]).parse().unwrap();
-				Some(Color::new_rgb(r, g, b))
-			},
-			None => None
-		}
-	}
+		let caps = re_css_function.captures(string);
+        if caps.is_none() {
+            return None;
+        }
 
-	fn try_parse_rgba(string: &str) -> Option<Color> {
-		lazy_static! {
-			static ref re_rgba: Regex = Regex::new(r"^rgba\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d(\.\d+)?)\s*\)$").unwrap();
-		}
-		let caps = re_rgba.captures(string);
-		match caps {
-			Some(cap) => {
-				let r: u8 = String::from(&cap[1]).parse().unwrap();
-				let g: u8 = String::from(&cap[2]).parse().unwrap();
-				let b: u8 = String::from(&cap[3]).parse().unwrap();
-				let a_float: f64 = String::from(&cap[4]).parse().unwrap();
-				if a_float < 0.0 || a_float > 1.0 {
-					return None;
-				}
-				let a = (a_float * 255.0).round() as u8;
-				Some(Color::new_rgba(r, g, b, a))
-			},
-			None => None
-		}
+        let cap = caps.unwrap();
+        let css_function = &cap[1];
+        let mut force_alpha = false;
+        let css_base_function = match css_function {
+            "cmyk" => "cmyk",
+            "rgb" => "rgb",
+            "rgba" => {
+                force_alpha = true;
+                "rgb"
+            },
+            "hsl" => "hsl",
+            "hsla" => {
+                force_alpha = true;
+                "hsl"
+            },
+            "hsv" => "hsv",
+            "hsva" => {
+                force_alpha = true;
+                "hsv"
+            },
+            "hwb" => "hwb",
+            "hwba" => {
+                force_alpha = true;
+                "hwb"
+            },
+            _ => ""
+        };
+
+        let mut value_1: f64 = String::from(&cap[2]).parse().unwrap();
+        let mut value_2: f64 = String::from(&cap[5]).parse().unwrap();
+        let mut value_3: f64 = String::from(&cap[8]).parse().unwrap();
+        let value_4_opt = if cap.get(12).is_some() && cap[12].len() > 0 {
+            let float: f64 = String::from(&cap[12]).parse().unwrap();
+            Some(float)
+        } else {
+            None
+        };
+
+        match css_base_function {
+            "cmyk" => {
+                if value_4_opt.is_none() {
+                    return None;
+                }
+                let mut value_4 = value_4_opt.unwrap();
+                if &cap[4] == "°" {
+                    return None;
+                }
+
+                let rgb = Color::get_rgb_from_cmyk(value_1 / 100.0, value_2 / 100.0, value_3 / 100.0, value_4 / 100.0);
+                Some(Color::new_rgb(rgb.0, rgb.1, rgb.2))
+            },
+            "rgb" => {
+                if cap.get(4).is_some() && &cap[4] == "°" {
+                    return None;
+                }
+                let is_in_percentage_mode = if cap.get(4).is_some() && &cap[4] == "%" {
+                    true
+                } else {
+                    false
+                };
+                if is_in_percentage_mode {
+                    if &cap[7] != "%" || &cap[10] != "%" {
+                        return None;
+                    }
+                }
+                if value_1 < 0.0 {
+                    value_1 = 0.0;
+                }
+                if value_2 < 0.0 {
+                    value_2 = 0.0;
+                }
+                if value_3 < 0.0 {
+                    value_3 = 0.0;
+                }
+
+                let a = if value_4_opt.is_some() {
+                    let mut value_4 = value_4_opt.unwrap();
+                    if value_4 < 0.0 {
+                        value_4 = 0.0;
+                    }
+                    if value_4 > 1.0 {
+                        value_4 = 1.0;
+                    }
+
+                    (value_4 * 255.0).round() as u8
+                } else {
+                    if force_alpha {
+                        return None;
+                    }
+                    255
+                };
+
+                let rgb = if is_in_percentage_mode {
+                    value_1 /= 100.0;
+                    value_2 /= 100.0;
+                    value_3 /= 100.0;
+                    if value_1 > 1.0 {
+                        value_1 = 1.0;
+                    }
+                    if value_2 > 1.0 {
+                        value_2 = 1.0;
+                    }
+                    if value_3 > 1.0 {
+                        value_3 = 1.0;
+                    }
+
+                    ((value_1 * 255.0).round() as u8, (value_2 * 255.0).round() as u8, (value_3 * 255.0).round() as u8)
+                } else {
+                    if value_1 > 255.0 {
+                        value_1 = 255.0;
+                    }
+                    if value_2 > 255.0 {
+                        value_2 = 255.0;
+                    }
+                    if value_3 > 255.0 {
+                        value_3 = 255.0;
+                    }
+
+                    (value_1.round() as u8, value_2.round() as u8, value_3.round() as u8)
+                };
+
+                Some(Color::new_rgba(rgb.0, rgb.1, rgb.2, a))
+            },
+            _ => None
+        }
 	}
 
 	fn try_parse_abbr_color(string: &str) -> Option<Color> {
@@ -1877,6 +2010,23 @@ mod tests {
         assert_eq!(red_color.red, 255);
         assert_eq!(red_color.green, 0);
         assert_eq!(red_color.blue, 0);
+
+        let green_color = Color::new_string("rgb(0%, 100%, 0%)").unwrap();
+        assert_eq!(green_color.red, 0);
+        assert_eq!(green_color.green, 255);
+        assert_eq!(green_color.blue, 0);
+
+        let blue_color = Color::new_string("rgb(0, 0, 255, 0.5)").unwrap();
+        assert_eq!(blue_color.red, 0);
+        assert_eq!(blue_color.green, 0);
+        assert_eq!(blue_color.blue, 255);
+        assert_eq!(blue_color.alpha, 128);
+
+        let yellow_color = Color::new_string("rgb(100%, 100%, 0%, 0.5)").unwrap();
+        assert_eq!(yellow_color.red, 255);
+        assert_eq!(yellow_color.green, 255);
+        assert_eq!(yellow_color.blue, 0);
+        assert_eq!(yellow_color.alpha, 128);
     }
 
     #[test]
@@ -1886,6 +2036,12 @@ mod tests {
         assert_eq!(red_color.green, 0);
         assert_eq!(red_color.blue, 0);
         assert_eq!(red_color.alpha, 128);
+
+        let green_color = Color::new_string("rgba(0%, 100%, 0%, 0.5)").unwrap();
+        assert_eq!(green_color.red, 0);
+        assert_eq!(green_color.green, 255);
+        assert_eq!(green_color.blue, 0);
+        assert_eq!(green_color.alpha, 128);
     }
 
     #[test]

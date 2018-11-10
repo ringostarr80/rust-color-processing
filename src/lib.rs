@@ -133,23 +133,17 @@ impl Color {
 	/// ```
 	/// use rl::Color;
 	/// 
-	/// let red = Color::new_hsv(0.0, 1.0, 1.0).unwrap();
+	/// let red = Color::new_hsv(0.0, 1.0, 1.0);
 	/// 
 	/// assert_eq!(255, red.red);
 	/// assert_eq!(0, red.green);
 	/// assert_eq!(0, red.blue);
 	/// assert_eq!(255, red.alpha);
 	/// ```
-	pub fn new_hsv<'a>(h: f64, s: f64, v: f64) -> Result<Color, &'a str> {
-		match Color::get_rgb_from_hsv(h, s, v) {
-			Ok(rgb) => Ok(Color {
-                red: rgb.0,
-                green: rgb.1,
-                blue: rgb.2,
-                alpha: 255
-            }),
-			Err(message) => Err(message)
-		}
+	pub fn new_hsv(h: f64, s: f64, v: f64) -> Color {
+		let rgb = Color::get_rgb_from_hsv(h, s, v);
+
+        Color::new_rgb(rgb.0, rgb.1, rgb.2)
 	}
 
     /// Gets a new Color struct, that represents a color with the hue, saturation, value and alpha values.
@@ -158,27 +152,25 @@ impl Color {
 	/// ```
 	/// use rl::Color;
 	/// 
-	/// let red = Color::new_hsva(0.0, 1.0, 1.0, 0.5).unwrap();
+	/// let red = Color::new_hsva(0.0, 1.0, 1.0, 0.5);
 	/// 
 	/// assert_eq!(255, red.red);
 	/// assert_eq!(0, red.green);
 	/// assert_eq!(0, red.blue);
 	/// assert_eq!(128, red.alpha);
 	/// ```
-	pub fn new_hsva<'a>(h: f64, s: f64, v: f64, a: f64) -> Result<Color, &'a str> {
-        if a < 0.0 || a > 1.0 {
-            return Err("alpha value must be between 0.0 and 1.0!");
-        }
+	pub fn new_hsva(h: f64, s: f64, v: f64, a: f64) -> Color {
+        let alpha = if a < 0.0 {
+            0
+        } else if a > 1.0 {
+            255
+        } else {
+            (a * 255.0).round() as u8
+        };
 
-		match Color::get_rgb_from_hsv(h, s, v) {
-			Ok(rgb) => Ok(Color {
-                red: rgb.0,
-                green: rgb.1,
-                blue: rgb.2,
-                alpha: (a * 255.0).round() as u8
-            }),
-			Err(message) => Err(message)
-		}
+		let rgb = Color::get_rgb_from_hsv(h, s, v);
+
+        Color::new_rgba(rgb.0, rgb.1, rgb.2, alpha)
 	}
 
     /// Gets a new Color struct, that represents a color with the given KnownColors-enum values.
@@ -440,6 +432,24 @@ impl Color {
     /// assert_eq!(transparent_green.green, 255);
     /// assert_eq!(transparent_green.blue, 0);
     /// assert_eq!(transparent_green.alpha, 128);
+    /// 
+    /// let red = Color::new_string("hsv(0, 100%, 100%)").unwrap();
+    /// assert_eq!(red.red, 255);
+    /// assert_eq!(red.green, 0);
+    /// assert_eq!(red.blue, 0);
+    /// assert_eq!(red.alpha, 255);
+    /// 
+    /// let green = Color::new_string("hsv(120°, 100%, 100%)").unwrap();
+    /// assert_eq!(green.red, 0);
+    /// assert_eq!(green.green, 255);
+    /// assert_eq!(green.blue, 0);
+    /// assert_eq!(green.alpha, 255);
+    /// 
+    /// let transparent_green = Color::new_string("hsva(120°, 100%, 100%, 0.5)").unwrap();
+    /// assert_eq!(transparent_green.red, 0);
+    /// assert_eq!(transparent_green.green, 255);
+    /// assert_eq!(transparent_green.blue, 0);
+    /// assert_eq!(transparent_green.alpha, 128);
 	/// ```
 	pub fn new_string(string: &str) -> Option<Color> {
         let trimmed_string = string.trim();
@@ -449,7 +459,6 @@ impl Color {
             .or_else(|| Color::try_parse_abbr_color(normalized_str))
             .or_else(|| Color::try_parse_hex(normalized_str))
             .or_else(|| Color::try_parse_css_function(normalized_str))
-            .or_else(|| Color::try_parse_hsv(normalized_str))
             .or_else(|| Color::try_parse_hwb(normalized_str))
             .or_else(|| Color::try_parse_hwba(normalized_str));
             
@@ -757,16 +766,20 @@ impl Color {
 		(r, g, b)
 	}
 
-	fn get_rgb_from_hsv<'a>(h: f64, s: f64, v: f64) -> Result<(u8, u8, u8), &'a str> {
+	fn get_rgb_from_hsv(mut h: f64, mut s: f64, mut v: f64) -> (u8, u8, u8) {
 		if h < 0.0 || h > 360.0 {
-			return Err("h must be between 0.0 and 360.0!");
-		}
-		if s < 0.0 || s > 1.0 {
-			return Err("s must be between 0.0 and 1.0!");
-		}
-		if v < 0.0 || v > 1.0 {
-			return Err("v must be between 0.0 and 1.0!");
-		}
+            h = ((h % 360.0) + 360.0) % 360.0;
+        }
+        if s < 0.0 {
+            s = 0.0;
+        } else if s > 1.0 {
+            s = 1.0;
+        }
+        if v < 0.0 {
+            v = 0.0;
+        } else if v > 1.0 {
+            v = 1.0;
+        }
 
 		let c = v * s;
 		let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
@@ -799,7 +812,7 @@ impl Color {
 		let g = ((g1 + m) * 255.0).round() as u8;
 		let b = ((b1 + m) * 255.0).round() as u8;
 
-		Ok((r, g, b))
+		(r, g, b)
 	}
 
 	fn get_rgb_from_hwb<'a>(mut h: f64, mut w: f64, mut b: f64) -> Result<(u8, u8, u8), &'a str> {
@@ -978,10 +991,12 @@ impl Color {
 		hwb_string
 	}
 
-	pub fn interpolate_hsv(&self, color: Color, interpolation: f64) -> Result<Color, &str> {
-		if interpolation < 0.0 || interpolation > 1.0 {
-			return Err("interpolation must be between 0.0 and 1.0!");
-		}
+	pub fn interpolate_hsv(&self, color: Color, mut interpolation: f64) -> Color {
+        if interpolation < 0.0 {
+            interpolation = 0.0;
+        } else if interpolation > 1.0 {
+            interpolation = 1.0;
+        }
 
 		let hsv = self.get_hsv();
 		let first_h = hsv.0 / 255.0;
@@ -1079,26 +1094,6 @@ impl Color {
                 let a = u8::from_str_radix(a_hex.as_str(), 16).unwrap();
 
 				Some(Color::new_rgba(r, g, b, a))
-			},
-			None => None
-		}
-	}
-
-	fn try_parse_hsv(string: &str) -> Option<Color> {
-		lazy_static! {
-			static ref re_hsv: Regex = Regex::new(r"^hsv\s*\(\s*(\d{1,3})\s*,\s*(\d+(\.\d+)?)\s*%?\s*,\s*(\d+(\.\d+)?)\s*%?\s*\)$").unwrap();
-		}
-		let caps = re_hsv.captures(string);
-		match caps {
-			Some(cap) => {
-				let mut h: f64 = String::from(&cap[1]).parse().unwrap();
-				let mut s: f64 = String::from(&cap[2]).parse().unwrap();
-				let mut l: f64 = String::from(&cap[4]).parse().unwrap();
-				let rgb_result = Color::get_rgb_from_hsv(h, s / 100.0, l / 100.0);
-				match rgb_result {
-					Ok(rgb) => Some(Color::new_rgb(rgb.0, rgb.1, rgb.2)),
-					Err(_) => None
-				}
 			},
 			None => None
 		}
@@ -1299,6 +1294,20 @@ impl Color {
                 }
 
                 let rgb = Color::get_rgb_from_hsl(value_1, value_2 / 100.0, value_3 / 100.0);
+
+                Some(Color::new_rgba(rgb.0, rgb.1, rgb.2, alpha_opt.unwrap()))
+            },
+            "hsv" => {
+                if cap.get(4).is_some() && &cap[4] == "%" {
+                    return None;
+                }
+
+                let alpha_opt = get_alpha(value_4_opt);
+                if alpha_opt.is_none() {
+                    return None;
+                }
+
+                let rgb = Color::get_rgb_from_hsv(value_1, value_2 / 100.0, value_3 / 100.0);
 
                 Some(Color::new_rgba(rgb.0, rgb.1, rgb.2, alpha_opt.unwrap()))
             },
@@ -1789,49 +1798,49 @@ mod tests {
 
     #[test]
     fn color_new_hsv() {
-        let red = Color::new_hsv(0.0, 1.0, 1.0).unwrap();
+        let red = Color::new_hsv(0.0, 1.0, 1.0);
         assert_eq!(red.red, 255);
         assert_eq!(red.green, 0);
         assert_eq!(red.blue, 0);
         assert_eq!(red.alpha, 255);
 
-        let green = Color::new_hsv(120.0, 1.0, 1.0).unwrap();
+        let green = Color::new_hsv(120.0, 1.0, 1.0);
         assert_eq!(green.red, 0);
         assert_eq!(green.green, 255);
         assert_eq!(green.blue, 0);
         assert_eq!(green.alpha, 255);
 
-        let blue = Color::new_hsv(240.0, 1.0, 1.0).unwrap();
+        let blue = Color::new_hsv(240.0, 1.0, 1.0);
         assert_eq!(blue.red, 0);
         assert_eq!(blue.green, 0);
         assert_eq!(blue.blue, 255);
         assert_eq!(blue.alpha, 255);
 
-        let black = Color::new_hsv(0.0, 0.0, 0.0).unwrap();
+        let black = Color::new_hsv(0.0, 0.0, 0.0);
         assert_eq!(black.red, 0);
         assert_eq!(black.green, 0);
         assert_eq!(black.blue, 0);
         assert_eq!(black.alpha, 255);
 
-        let white = Color::new_hsv(0.0, 0.0, 1.0).unwrap();
+        let white = Color::new_hsv(0.0, 0.0, 1.0);
         assert_eq!(white.red, 255);
         assert_eq!(white.green, 255);
         assert_eq!(white.blue, 255);
         assert_eq!(white.alpha, 255);
 
-        let yellow = Color::new_hsv(60.0, 1.0, 1.0).unwrap();
+        let yellow = Color::new_hsv(60.0, 1.0, 1.0);
         assert_eq!(yellow.red, 255);
         assert_eq!(yellow.green, 255);
         assert_eq!(yellow.blue, 0);
         assert_eq!(yellow.alpha, 255);
 
-        let cyan = Color::new_hsv(180.0, 1.0, 1.0).unwrap();
+        let cyan = Color::new_hsv(180.0, 1.0, 1.0);
         assert_eq!(cyan.red, 0);
         assert_eq!(cyan.green, 255);
         assert_eq!(cyan.blue, 255);
         assert_eq!(cyan.alpha, 255);
 
-        let magenta = Color::new_hsv(300.0, 1.0, 1.0).unwrap();
+        let magenta = Color::new_hsv(300.0, 1.0, 1.0);
         assert_eq!(magenta.red, 255);
         assert_eq!(magenta.green, 0);
         assert_eq!(magenta.blue, 255);
@@ -1840,19 +1849,19 @@ mod tests {
 
     #[test]
     fn color_new_hsva() {
-        let red_transparent = Color::new_hsva(0.0, 1.0, 1.0, 0.5).unwrap();
+        let red_transparent = Color::new_hsva(0.0, 1.0, 1.0, 0.5);
         assert_eq!(red_transparent.red, 255);
         assert_eq!(red_transparent.green, 0);
         assert_eq!(red_transparent.blue, 0);
         assert_eq!(red_transparent.alpha, 128);
 
-        let green_transparent = Color::new_hsva(120.0, 1.0, 1.0, 0.0).unwrap();
+        let green_transparent = Color::new_hsva(120.0, 1.0, 1.0, 0.0);
         assert_eq!(green_transparent.red, 0);
         assert_eq!(green_transparent.green, 255);
         assert_eq!(green_transparent.blue, 0);
         assert_eq!(green_transparent.alpha, 0);
 
-        let blue = Color::new_hsva(240.0, 1.0, 1.0, 1.0).unwrap();
+        let blue = Color::new_hsva(240.0, 1.0, 1.0, 1.0);
         assert_eq!(blue.red, 0);
         assert_eq!(blue.green, 0);
         assert_eq!(blue.blue, 255);

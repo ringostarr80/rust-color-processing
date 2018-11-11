@@ -545,12 +545,26 @@ impl Color {
             .or_else(|| Color::try_parse_css_function(normalized_str))
 	}
 
+    /// Gets a cmyk tuple of the color.
+	/// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let red = Color::new_string("red").unwrap();
+    /// let red_cmyk = red.get_cmyk();
+	/// 
+	/// assert_eq!(0.0, red_cmyk.0);
+    /// assert_eq!(1.0, red_cmyk.1);
+    /// assert_eq!(1.0, red_cmyk.2);
+    /// assert_eq!(0.0, red_cmyk.3);
+	/// ```
 	pub fn get_cmyk(&self) -> (f64, f64, f64, f64) {
 		let r = self.red as f64 / 255.0;
 		let g = self.green as f64 / 255.0;
 		let b = self.blue as f64 / 255.0;
 		let mut rgb_max = r;
-		if g > rgb_max {
+        if g > rgb_max {
 			rgb_max = g;
 		}
 		if b > rgb_max {
@@ -563,6 +577,211 @@ impl Color {
 		let yellow = ((1.0 - b - black) / (1.0 - black)).round();
 
 		(cyan, magenta, yellow, black)
+	}
+
+    /// Gets a hsla tuple of the color.
+	/// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
+    /// let transparent_green_hsla = transparent_green.get_hsla();
+	/// 
+	/// assert_eq!(120.0, transparent_green_hsla.0);
+    /// assert_eq!(1.0, transparent_green_hsla.1);
+    /// assert_eq!(0.5, transparent_green_hsla.2);
+    /// assert_eq!(0.5, transparent_green_hsla.3);
+	/// ```
+    pub fn get_hsla(&self) -> (f64, f64, f64, f64) {
+		let r = self.red as f64 / 255.0;
+		let g = self.green as f64 / 255.0;
+		let b = self.blue as f64 / 255.0;
+
+		let mut c_max = r;
+		let mut c_min = r;
+		if g > c_max {
+			c_max = g;
+		}
+		if g < c_min {
+			c_min = g;
+		}
+		if b > c_max {
+			c_max = b;
+		}
+		if b < c_min {
+			c_min = b;
+		}
+		let c_delta = c_max - c_min;
+
+		let mut h = 0.0;
+		let mut s = 0.0;
+		let l = (c_max + c_min) / 2.0;
+		if c_delta != 0.0 {
+			if c_max == r {
+				h = 60.0 * (((g - b) / c_delta) % 6.0);
+			} else if c_max == g {
+				h = 60.0 * ((b - r) / c_delta + 2.0);
+			} else if c_max == b {
+				h = 60.0 * ((r - g) / c_delta + 4.0);
+			}
+			s = c_delta / (1.0 - (2.0 * l - 1.0).abs());
+		}
+
+        // round with a precision of 2 decimals.
+        let alpha = (self.alpha as f64 / 255.0 * 100.0).round() / 100.0;
+
+		(h, s, l, alpha)
+	}
+
+    /// Gets a hsva tuple of the color.
+	/// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
+    /// let transparent_green_hsva = transparent_green.get_hsva();
+	/// 
+	/// assert_eq!(120.0, transparent_green_hsva.0);
+    /// assert_eq!(1.0, transparent_green_hsva.1);
+    /// assert_eq!(1.0, transparent_green_hsva.2);
+    /// assert_eq!(0.5, transparent_green_hsva.3);
+	/// ```
+    pub fn get_hsva(&self) -> (f64, f64, f64, f64) {
+		let mut min = 1.0;
+		let mut max = 0.0;
+
+		let red = self.red as f64 / 255.0;
+		let green = self.green as f64 / 255.0;
+		let blue = self.blue as f64 / 255.0;
+        // round with a precision of 2 decimals.
+        let alpha = (self.alpha as f64 / 255.0 * 100.0).round() / 100.0;
+
+		if red < min {
+			min = red;
+		}
+		if green < min {
+			min = green;
+		}
+		if blue < min {
+			min = blue;
+		}
+		if red > max {
+			max = red;
+		}
+		if green > max {
+			max = green;
+		}
+		if blue > max {
+			max = blue;
+		}
+
+		if max == 0.0 {
+			return (0.0, 0.0, 0.0, alpha);
+		}
+		
+		let v = max;
+		let delta = max - min;
+		let s = delta / max;
+		let mut h = if red == max {
+			(green - blue) / delta
+		} else if green == max {
+			2.0 + (blue - red) / delta
+		} else {
+			4.0 + (red - green) / delta
+		};
+		h *= 60.0;
+		if h < 0.0 {
+			h += 360.0;
+		}
+
+		if h == std::f64::NAN {
+			h = 0.0;
+		}
+
+        (h, s, v, alpha)
+	}
+
+    /// Gets a hsva tuple of the color.
+	/// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
+    /// let transparent_green_hwba = transparent_green.get_hwba();
+	/// 
+	/// assert_eq!(120.0, transparent_green_hwba.0);
+    /// assert_eq!(0.0, transparent_green_hwba.1);
+    /// assert_eq!(0.0, transparent_green_hwba.2);
+    /// assert_eq!(0.5, transparent_green_hwba.3);
+	/// ```
+    pub fn get_hwba(&self) -> (f64, f64, f64, f64) {
+		let r = self.red as f64 / 255.0;
+		let g = self.green as f64 / 255.0;
+		let b = self.blue as f64 / 255.0;
+		
+		let white = if r < g && r < b {
+			r
+		} else if g < r && g < b {
+			g
+		} else {
+			b
+		};
+		let value = if r > g && r > b {
+			r
+		} else if g > r && g > b {
+			g
+		} else {
+			b
+		};
+		let black = 1.0 - value;
+		let f = if r == white {
+			g - b
+		} else if g == white {
+			b - r
+		} else {
+			r - g
+		};
+		let i = if r == white {
+			3.0
+		} else if g == white {
+			5.0
+		} else {
+			1.0
+		};
+		
+		let mut h = (i - f / (value - white)) * 60.0;
+		if h == 360.0 {
+			h = 0.0;
+		}
+
+        // round with a precision of 2 decimals.
+        let alpha = (self.alpha as f64 / 255.0 * 100.0).round() / 100.0;
+
+		(h, white, black, alpha)
+	}
+
+    /// Gets a rgba tuple of the color.
+	/// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
+    /// let transparent_green_rgba = transparent_green.get_rgba();
+	/// 
+	/// assert_eq!(0.0, transparent_green_rgba.0);
+    /// assert_eq!(1.0, transparent_green_rgba.1);
+    /// assert_eq!(0.0, transparent_green_rgba.2);
+    /// assert_eq!(0.5, transparent_green_rgba.3);
+	/// ```
+    pub fn get_rgba(&self) -> (f64, f64, f64, f64) {
+        // round with a precision of 2 decimals.
+        let alpha = (self.alpha as f64 / 255.0 * 100.0).round() / 100.0;
+
+		(self.red as f64 / 255.0, self.green as f64 / 255.0, self.blue as f64 / 255.0, alpha)
 	}
 
 	pub fn get_lab(&self) -> (f64, f64, f64) {
@@ -626,146 +845,7 @@ impl Color {
 		(lab.0, c, h)
 	}
 
-	pub fn get_hsla(&self) -> (f64, f64, f64, f64) {
-		let r = self.red as f64 / 255.0;
-		let g = self.green as f64 / 255.0;
-		let b = self.blue as f64 / 255.0;
-
-		let mut c_max = r;
-		let mut c_min = r;
-		if g > c_max {
-			c_max = g;
-		}
-		if g < c_min {
-			c_min = g;
-		}
-		if b > c_max {
-			c_max = b;
-		}
-		if b < c_min {
-			c_min = b;
-		}
-		let c_delta = c_max - c_min;
-
-		let mut h = 0.0;
-		let mut s = 0.0;
-		let l = (c_max + c_min) / 2.0;
-		if c_delta != 0.0 {
-			if c_max == r {
-				h = 60.0 * (((g - b) / c_delta) % 6.0);
-			} else if c_max == g {
-				h = 60.0 * ((b - r) / c_delta + 2.0);
-			} else if c_max == b {
-				h = 60.0 * ((r - g) / c_delta + 4.0);
-			}
-			s = c_delta / (1.0 - (2.0 * l - 1.0).abs());
-		}
-
-		(h, s, l, self.alpha as f64 / 255.0)
-	}
-
-	pub fn get_hsva(&self) -> (f64, f64, f64, f64) {
-		let mut min = 1.0;
-		let mut max = 0.0;
-
-		let red = self.red as f64 / 255.0;
-		let green = self.green as f64 / 255.0;
-		let blue = self.blue as f64 / 255.0;
-        let alpha = self.alpha as f64 / 255.0;
-
-		if red < min {
-			min = red;
-		}
-		if green < min {
-			min = green;
-		}
-		if blue < min {
-			min = blue;
-		}
-		if red > max {
-			max = red;
-		}
-		if green > max {
-			max = green;
-		}
-		if blue > max {
-			max = blue;
-		}
-
-		if max == 0.0 {
-			return (0.0, 0.0, 0.0, alpha);
-		}
-		
-		let v = max; // v
-		let delta = max - min;
-		let s = delta / max; // s
-		let mut h = if red == max {
-			(green - blue) / delta
-		} else if green == max {
-			2.0 + (blue - red) / delta
-		} else {
-			4.0 + (red - green) / delta
-		};
-		h *= 60.0; // degrees
-		if h < 0.0 {
-			h += 360.0;
-		}
-
-		if h == std::f64::NAN {
-			h = 0.0;
-		}
-
-		(h, s, v, alpha)
-	}
-
-	pub fn get_hwba(&self) -> (f64, f64, f64, f64) {
-		let r = self.red as f64 / 255.0;
-		let g = self.green as f64 / 255.0;
-		let b = self.blue as f64 / 255.0;
-		
-		let white = if r < g && r < b {
-			r
-		} else if g < r && g < b {
-			g
-		} else {
-			b
-		};
-		let value = if r > g && r > b {
-			r
-		} else if g > r && g > b {
-			g
-		} else {
-			b
-		};
-		let black = 1.0 - value;
-		let f = if r == white {
-			g - b
-		} else if g == white {
-			b - r
-		} else {
-			r - g
-		};
-		let i = if r == white {
-			3.0
-		} else if g == white {
-			5.0
-		} else {
-			1.0
-		};
-		
-		let mut h = (i - f / (value - white)) * 60.0;
-		if h == 360.0 {
-			h = 0.0;
-		}
-
-		(h, white, black, self.alpha as f64 / 255.0)
-	}
-
-	pub fn get_rgba(&self) -> (f64, f64, f64, f64) {
-		(self.red as f64 / 255.0, self.green as f64 / 255.0, self.blue as f64 / 255.0, self.alpha as f64 / 255.0)
-	}
-
-    fn get_rgb_from_cmyk<'a>(mut c: f64, mut m: f64, mut y: f64, mut k: f64) -> (u8, u8, u8) {
+	fn get_rgb_from_cmyk<'a>(mut c: f64, mut m: f64, mut y: f64, mut k: f64) -> (u8, u8, u8) {
         if c < 0.0 {
             c = 0.0;
         }
@@ -934,6 +1014,37 @@ impl Color {
 		Color::new_hsl(hsla.0, hsla.1, 1.0 - hsla.2)
 	}
 
+    /// Gets a formatted cmyk String of the color as used in css.
+	/// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let red = Color::new_string("red").unwrap();
+	/// 
+	/// assert_eq!("cmyk(0%, 100%, 100%, 0%)", red.to_cmyk_string());
+	/// ```
+    pub fn to_cmyk_string(&self) -> String {
+		let cmyk = self.get_cmyk();
+
+		let mut cmyk_string = String::from("cmyk(");
+		cmyk_string.push_str(format!("{}%, {}%, {}%, {}%", cmyk.0 * 100.0, cmyk.1 * 100.0, cmyk.2 * 100.0, cmyk.3).as_str());
+		cmyk_string.push_str(")");
+		cmyk_string
+	}
+
+    /// Gets a formatted hex String of the color as used in css.
+	/// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let red = Color::new_string("red").unwrap();
+    /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
+	/// 
+	/// assert_eq!("#FF0000", red.to_hex_string());
+    /// assert_eq!("#00FF0080", transparent_green.to_hex_string());
+	/// ```
 	pub fn to_hex_string(&self) -> String {
 		let mut hex = String::from("#");
 		hex.push_str(format!("{:01$X}", self.red, 2).as_str());
@@ -945,32 +1056,19 @@ impl Color {
 		hex
 	}
 
-	pub fn to_rgb_string(&self) -> String {
-		let mut rgb = String::from("rgb");
-		if self.alpha != 255 {
-			rgb.push_str("a");
-		}
-		rgb.push_str("(");
-		rgb.push_str(format!("{}, {}, {}", self.red, self.green, self.blue).as_str());
-		if self.alpha != 255 {
-			// round with a precision of 2 decimals.
-			rgb.push_str(format!(", {}", ((self.alpha as f64) / 255.0 * 100.0).round() / 100.0).as_str());
-		}
-		rgb.push_str(")");
-
-		rgb
-	}
-
-	pub fn to_cmyk_string(&self) -> String {
-		let cmyk = self.get_cmyk();
-
-		let mut cmyk_string = String::from("cmyk(");
-		cmyk_string.push_str(format!("{}%, {}%, {}%, {}%", cmyk.0 * 100.0, cmyk.1 * 100.0, cmyk.2 * 100.0, cmyk.3).as_str());
-		cmyk_string.push_str(")");
-		cmyk_string
-	}
-
-	pub fn to_hsl_string(&self) -> String {
+    /// Gets a formatted hsl String of the color as used in css.
+	/// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let red = Color::new_string("red").unwrap();
+    /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
+	/// 
+	/// assert_eq!("hsl(0, 100%, 50%)", red.to_hsl_string());
+    /// assert_eq!("hsla(120, 100%, 50%, 0.5)", transparent_green.to_hsl_string());
+	/// ```
+    pub fn to_hsl_string(&self) -> String {
 		let hsla = self.get_hsla();
 
 		let mut hsl_string = String::from("hsl");
@@ -981,13 +1079,25 @@ impl Color {
 		hsl_string.push_str(format!("{}, {}%, {}%", hsla.0, hsla.1 * 100.0, hsla.2 * 100.0).as_str());
 		if self.alpha != 255 {
 			// round with a precision of 2 decimals.
-			hsl_string.push_str(format!(", {}", ((self.alpha as f64) / 255.0 * 100.0).round() / 100.0).as_str());
+			hsl_string.push_str(format!(", {}", (hsla.3 * 100.0).round() / 100.0).as_str());
 		}
 		hsl_string.push_str(")");
 		hsl_string
 	}
 
-	pub fn to_hsv_string(&self) -> String {
+    /// Gets a formatted hsv String of the color as used in css.
+	/// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let red = Color::new_string("red").unwrap();
+    /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
+	/// 
+	/// assert_eq!("hsv(0, 100%, 100%)", red.to_hsv_string());
+    /// assert_eq!("hsva(120, 100%, 100%, 0.5)", transparent_green.to_hsv_string());
+	/// ```
+    pub fn to_hsv_string(&self) -> String {
 		let hsva = self.get_hsva();
 
 		let mut hsv_string = String::from("hsv");
@@ -1004,7 +1114,19 @@ impl Color {
 		hsv_string
 	}
 
-	pub fn to_hwb_string(&self) -> String {
+    /// Gets a formatted hwb String of the color as used in css.
+	/// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let red = Color::new_string("red").unwrap();
+    /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
+	/// 
+	/// assert_eq!("hwb(0, 0%, 0%)", red.to_hwb_string());
+    /// assert_eq!("hwba(120, 0%, 0%, 0.5)", transparent_green.to_hwb_string());
+	/// ```
+    pub fn to_hwb_string(&self) -> String {
 		let hwba = self.get_hwba();
 
 		let mut hwb_string = String::from("hwb");
@@ -1021,7 +1143,52 @@ impl Color {
 		hwb_string
 	}
 
-	pub fn interpolate_hsv(&self, color: Color, mut interpolation: f64) -> Color {
+    /// Gets a formatted rgb String of the color as used in css.
+	/// 
+	/// # Example
+	/// ```
+	/// use rl::Color;
+	/// 
+	/// let red = Color::new_string("red").unwrap();
+    /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
+	/// 
+	/// assert_eq!("rgb(255, 0, 0)", red.to_rgb_string());
+    /// assert_eq!("rgba(0, 255, 0, 0.5)", transparent_green.to_rgb_string());
+	/// ```
+	pub fn to_rgb_string(&self) -> String {
+		let mut rgb = String::from("rgb");
+		if self.alpha != 255 {
+			rgb.push_str("a");
+		}
+		rgb.push_str("(");
+		rgb.push_str(format!("{}, {}, {}", self.red, self.green, self.blue).as_str());
+		if self.alpha != 255 {
+			// round with a precision of 2 decimals.
+			rgb.push_str(format!(", {}", ((self.alpha as f64) / 255.0 * 100.0).round() / 100.0).as_str());
+		}
+		rgb.push_str(")");
+
+		rgb
+	}
+
+	pub fn interpolate(&self, color: Color, interpolation: f64) -> Color {
+        let i = if interpolation < 0.0 {
+            0.0
+        } else if interpolation > 1.0 {
+            1.0
+        } else {
+            interpolation
+        };
+
+		Color {
+			red: (self.red as f64 + (color.red - self.red) as f64 * i).round() as u8,
+			green: (self.green as f64 + (color.green - self.green) as f64 * i).round() as u8,
+			blue: (self.blue as f64 + (color.blue - self.blue) as f64 * i).round() as u8,
+            alpha: (self.alpha as f64 + (color.alpha - self.alpha) as f64 * i).round() as u8
+		}
+	}
+
+    pub fn interpolate_hsv(&self, color: Color, mut interpolation: f64) -> Color {
         if interpolation < 0.0 {
             interpolation = 0.0;
         } else if interpolation > 1.0 {
@@ -1045,24 +1212,6 @@ impl Color {
 		let new_v = first_v + (second_v - first_v) * interpolation;
 
 		Color::new_hsv(new_h * 255.0, new_s, new_v)
-	}
-
-	pub fn interpolate_rgb(&self, color: Color, interpolation: f64) -> Result<Color, &str> {
-		if interpolation < 0.0 || interpolation > 1.0 {
-			return Err("interpolation must be between 0.0 and 1.0!");
-		}
-
-		let interpolated_red = (self.red as f64 + (color.red - self.red) as f64 * interpolation).round() as u8;
-		let interpolated_green = (self.green as f64 + (color.green - self.green) as f64 * interpolation).round() as u8;
-		let interpolated_blue = (self.blue as f64 + (color.blue - self.blue) as f64 * interpolation).round() as u8;
-		let interpolated_alpha = (self.alpha as f64 + (color.alpha - self.alpha) as f64 * interpolation).round() as u8;
-		
-		Ok(Color{
-			alpha: interpolated_alpha,
-			red: interpolated_red,
-			green: interpolated_green,
-			blue: interpolated_blue
-		})
 	}
 
 	fn try_parse_hex(string: &str) -> Option<Color> {
@@ -1940,7 +2089,7 @@ mod tests {
     }
 
     #[test]
-    fn color_try_parse_known_color() {
+    fn color_new_string_known_color() {
         let red = Color::new_string("red").unwrap();
         assert_eq!(red.red, 255);
         assert_eq!(red.green, 0);
@@ -1991,7 +2140,7 @@ mod tests {
     }
 
     #[test]
-    fn color_try_parse_abbr_color() {
+    fn color_new_string_abbr_color() {
         let red = Color::new_string("RD").unwrap();
         assert_eq!(red.red, 255);
         assert_eq!(red.green, 0);
@@ -2036,7 +2185,7 @@ mod tests {
     }
 
     #[test]
-    fn color_hex() {
+    fn color_new_string_hex() {
         let red_color = Color::new_string("#ff0000").unwrap();
         assert_eq!(red_color.red, 255);
         assert_eq!(red_color.green, 0);
@@ -2076,7 +2225,7 @@ mod tests {
     }
 
     #[test]
-    fn color_rgb_string() {
+    fn color_new_string_rgb() {
         let red_color = Color::new_string("rgb(255, 0, 0)").unwrap();
         assert_eq!(red_color.red, 255);
         assert_eq!(red_color.green, 0);
@@ -2101,7 +2250,7 @@ mod tests {
     }
 
     #[test]
-    fn color_rgba_string() {
+    fn color_new_string_rgba() {
         let red_color = Color::new_string("rgba(255, 0, 0, 0.5)").unwrap();
         assert_eq!(red_color.red, 255);
         assert_eq!(red_color.green, 0);
@@ -2116,7 +2265,7 @@ mod tests {
     }
 
     #[test]
-    fn color_cmyk_string() {
+    fn color_new_string_cmyk() {
         let red_color = Color::new_string("cmyk(0%, 100%, 100%, 0%)").unwrap();
         assert_eq!(red_color.red, 255);
         assert_eq!(red_color.green, 0);
@@ -2167,7 +2316,7 @@ mod tests {
     }
 
     #[test]
-    fn color_hsl_string() {
+    fn color_new_string_hsl() {
         let red_color = Color::new_string("hsl(0, 100%, 50%)").unwrap();
         assert_eq!(red_color.red, 255);
         assert_eq!(red_color.green, 0);
@@ -2218,7 +2367,7 @@ mod tests {
     }
 
     #[test]
-    fn color_hsla_string() {
+    fn color_new_string_hsla() {
         let red_color = Color::new_string("hsla(0, 100%, 50%, 0.5)").unwrap();
         assert_eq!(red_color.red, 255);
         assert_eq!(red_color.green, 0);
@@ -2233,7 +2382,7 @@ mod tests {
     }
 
     #[test]
-    fn color_hsv_string() {
+    fn color_new_string_hsv() {
         let red_color = Color::new_string("hsv(0, 100%, 100%)").unwrap();
         assert_eq!(red_color.red, 255);
         assert_eq!(red_color.green, 0);
@@ -2241,7 +2390,7 @@ mod tests {
     }
 
     #[test]
-    fn color_hwb_string() {
+    fn color_new_string_hwb() {
         let red_color = Color::new_string("hwb(0, 0%, 0%)").unwrap();
         assert_eq!(red_color.red, 255);
         assert_eq!(red_color.green, 0);
@@ -2268,7 +2417,7 @@ mod tests {
     }
 
     #[test]
-    fn color_hwba_string() {
+    fn color_new_string_hwba() {
         let red_color = Color::new_string("hwba(0, 0%, 0%, 0.3)").unwrap();
         assert_eq!(red_color.red, 255);
         assert_eq!(red_color.green, 0);
@@ -2337,8 +2486,8 @@ mod tests {
         let red_color = Color::new_string("red").unwrap();
         assert_eq!(red_color.to_hsv_string(), "hsv(0, 100%, 100%)");
 
-        //let transparent_green_color = Color::new_string("#8000FF00").unwrap();
-        //assert_eq!(transparent_green_color.to_hsl_string(), "hsva(120, 100%, 50%, 0.5)");
+        let transparent_green_color = Color::new_string("#00FF0080").unwrap();
+        assert_eq!(transparent_green_color.to_hsv_string(), "hsva(120, 100%, 100%, 0.5)");
     }
 
     #[test]

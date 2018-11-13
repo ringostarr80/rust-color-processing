@@ -1,6 +1,13 @@
-#[macro_use] extern crate lazy_static;
+//! # Color crate
+//! 
+//! This `color` crate contains functions/methods to handle color values,
+//! like converting a rgb color to another colorspace (cmyk, hsl, hwb, ...),
+//! parse different kinds of color-strings or
+//! modifying colors (inverting, grayscale, colorize, ...).
+//! 
+//! It's not intended for image manipulation, just for parsing and processing single colors.
 
-//pub mod locr;
+#[macro_use] extern crate lazy_static;
 
 extern crate regex;
 
@@ -19,7 +26,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let black = Color::new();
 	/// 
@@ -41,7 +48,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_cmyk(0.0, 1.0, 1.0, 0.0);
 	/// 
@@ -60,7 +67,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::{Color, KnownColors};
+	/// use color::{Color, KnownColors};
 	/// 
 	/// let red = Color::new_enum(KnownColors::Red);
 	/// 
@@ -219,7 +226,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_hsl(0.0, 1.0, 0.5);
 	/// 
@@ -238,7 +245,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_hsla(0.0, 1.0, 0.5, 0.5);
 	/// 
@@ -265,7 +272,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_hsv(0.0, 1.0, 1.0);
 	/// 
@@ -284,7 +291,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_hsva(0.0, 1.0, 1.0, 0.5);
 	/// 
@@ -311,7 +318,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_hwb(0.0, 0.0, 0.0);
 	/// 
@@ -330,7 +337,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_hwba(0.0, 0.0, 0.0, 0.5);
 	/// 
@@ -357,7 +364,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_rgb(255, 0, 0);
 	/// 
@@ -379,7 +386,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_rgba(255, 0, 0, 128);
 	/// 
@@ -401,7 +408,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
 	/// 
@@ -549,7 +556,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let red_cmyk = red.get_cmyk();
@@ -583,7 +590,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
     /// let transparent_green_hsla = transparent_green.get_hsla();
@@ -638,7 +645,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
     /// let transparent_green_hsva = transparent_green.get_hsva();
@@ -707,7 +714,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
     /// let transparent_green_hwba = transparent_green.get_hwba();
@@ -767,7 +774,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
     /// let transparent_green_rgba = transparent_green.get_rgba();
@@ -1000,9 +1007,28 @@ impl Color {
 		}
 	}
 
+    /// Gets a grayscaled color from the color.
+	/// 
+	/// # Example
+	/// ```
+	/// use color::Color;
+	/// 
+	/// let red = Color::new_string("rgb(255, 0, 0)").unwrap();
+    /// let grayscaled_red = red.grayscale();
+	/// 
+	/// assert_eq!(76, grayscaled_red.red);
+    /// assert_eq!(76, grayscaled_red.green);
+    /// assert_eq!(76, grayscaled_red.blue);
+    /// assert_eq!(255, grayscaled_red.alpha);
+	/// ```
 	pub fn grayscale(&self) -> Color {
 		let gray_value = (self.red as f64 * 0.299 + self.green as f64 * 0.587 + self.blue as f64 * 0.114).floor() as u8;
-		Color {alpha: self.alpha, red: gray_value, green: gray_value, blue: gray_value}
+		Color {
+            red: gray_value,
+            green: gray_value,
+            blue: gray_value,
+            alpha: self.alpha
+        }
 	}
 
 	pub fn invert(&self) -> Color {
@@ -1018,7 +1044,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
 	/// 
@@ -1037,7 +1063,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
@@ -1060,7 +1086,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
@@ -1089,7 +1115,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
@@ -1118,7 +1144,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
@@ -1147,7 +1173,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use rl::Color;
+	/// use color::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
@@ -1199,13 +1225,11 @@ impl Color {
 		let first_h = hsva.0 / 255.0;
 		let first_s = hsva.1;
 		let first_v = hsva.2;
-		//let firstAlpha = self.alpha;
 
 		let second_hsva = color.get_hsva();
 		let second_h = second_hsva.0 / 255.0;
 		let second_s = second_hsva.1;
 		let second_v = second_hsva.2;
-		//let secondAlpha = color.alpha;
 
 		let new_h = first_h + (second_h - first_h) * interpolation;
 		let new_s = first_s + (second_s - first_s) * interpolation;
@@ -2539,6 +2563,27 @@ mod tests {
         let color = Color::new_string("#FF7300").unwrap();
         let grayscaled = color.grayscale();
         assert_eq!(grayscaled.to_hex_string(), "#8F8F8F");
+
+        let red = Color::new_string("rgb(255, 0, 0)").unwrap();
+        let grayscaled_red = red.grayscale();
+        assert_eq!(76, grayscaled_red.red);
+        assert_eq!(76, grayscaled_red.green);
+        assert_eq!(76, grayscaled_red.blue);
+        assert_eq!(255, grayscaled_red.alpha);
+
+        let green = Color::new_string("rgb(0, 255, 0)").unwrap();
+        let grayscaled_green = green.grayscale();
+        assert_eq!(149, grayscaled_green.red);
+        assert_eq!(149, grayscaled_green.green);
+        assert_eq!(149, grayscaled_green.blue);
+        assert_eq!(255, grayscaled_green.alpha);
+
+        let blue = Color::new_string("rgb(0, 0, 255)").unwrap();
+        let grayscaled_blue = blue.grayscale();
+        assert_eq!(29, grayscaled_blue.red);
+        assert_eq!(29, grayscaled_blue.green);
+        assert_eq!(29, grayscaled_blue.blue);
+        assert_eq!(255, grayscaled_blue.alpha);
     }
 
     #[test]

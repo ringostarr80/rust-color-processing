@@ -1,5 +1,5 @@
 [package]
-name = "rl"
+name = "color"
 version = "0.1.0"
 authors = ["Ringo Leese <webmaster@ringoleese.de>"]
 

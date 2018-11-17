@@ -13,6 +13,7 @@ extern crate regex;
 
 use self::regex::Regex;
 use std::f64::consts::PI;
+use std::str::FromStr;
 
 pub struct Color {
 	pub red: u8,
@@ -1662,6 +1663,38 @@ impl Color {
 			_ => None
 		}
 	}
+}
+
+impl FromStr for Color {
+    type Err = &'static str;
+
+    /// Parses a string into a Color-struct.
+	/// 
+	/// # Example
+	/// ```
+	/// use color::Color;
+	/// 
+	/// let red: Color = "red".parse().unwrap();
+    /// 
+	/// assert_eq!(255, red.red);
+    /// assert_eq!(0, red.green);
+    /// assert_eq!(0, red.blue);
+    /// assert_eq!(255, red.alpha);
+    /// 
+    /// // alternative:
+    /// let green = "green".parse::<Color>().unwrap();
+    /// 
+	/// assert_eq!(0, green.red);
+    /// assert_eq!(128, green.green);
+    /// assert_eq!(0, green.blue);
+    /// assert_eq!(255, green.alpha);
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match Color::new_string(s) {
+            Some(color) => Ok(color),
+            None => Err("unable to parse string to Color-struct.")
+        }
+    }
 }
 
 pub enum KnownColors {

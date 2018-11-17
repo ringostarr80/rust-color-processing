@@ -1,6 +1,6 @@
 //! # Color crate
 //! 
-//! This `color` crate contains functions/methods to handle color values,
+//! This `colors` crate contains functions/methods to handle color values,
 //! like converting a rgb color to another colorspace (cmyk, hsl, hwb, ...),
 //! parse different kinds of color-strings or
 //! modifying colors (inverting, grayscale, colorize, ...).
@@ -27,7 +27,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let black = Color::new();
 	/// 
@@ -49,7 +49,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_cmyk(0.0, 1.0, 1.0, 0.0);
 	/// 
@@ -68,7 +68,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::{Color, KnownColors};
+	/// use colors::{Color, KnownColors};
 	/// 
 	/// let red = Color::new_enum(KnownColors::Red);
 	/// 
@@ -227,7 +227,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_hsl(0.0, 1.0, 0.5);
 	/// 
@@ -246,7 +246,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_hsla(0.0, 1.0, 0.5, 0.5);
 	/// 
@@ -273,7 +273,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_hsv(0.0, 1.0, 1.0);
 	/// 
@@ -292,7 +292,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_hsva(0.0, 1.0, 1.0, 0.5);
 	/// 
@@ -319,7 +319,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_hwb(0.0, 0.0, 0.0);
 	/// 
@@ -338,7 +338,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_hwba(0.0, 0.0, 0.0, 0.5);
 	/// 
@@ -365,7 +365,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_rgb(255, 0, 0);
 	/// 
@@ -387,7 +387,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_rgba(255, 0, 0, 128);
 	/// 
@@ -409,7 +409,7 @@ impl Color {
     /// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
 	/// 
@@ -557,7 +557,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let red_cmyk = red.get_cmyk();
@@ -591,7 +591,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
     /// let transparent_green_hsla = transparent_green.get_hsla();
@@ -646,7 +646,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
     /// let transparent_green_hsva = transparent_green.get_hsva();
@@ -715,7 +715,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
     /// let transparent_green_hwba = transparent_green.get_hwba();
@@ -775,7 +775,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
     /// let transparent_green_rgba = transparent_green.get_rgba();
@@ -1012,7 +1012,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_string("rgb(255, 0, 0)").unwrap();
     /// let grayscaled_red = red.grayscale();
@@ -1045,7 +1045,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
 	/// 
@@ -1064,7 +1064,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
@@ -1087,7 +1087,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
@@ -1116,7 +1116,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
@@ -1145,7 +1145,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
@@ -1174,7 +1174,7 @@ impl Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red = Color::new_string("red").unwrap();
     /// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
@@ -1672,7 +1672,7 @@ impl FromStr for Color {
 	/// 
 	/// # Example
 	/// ```
-	/// use color::Color;
+	/// use colors::Color;
 	/// 
 	/// let red: Color = "red".parse().unwrap();
     /// 

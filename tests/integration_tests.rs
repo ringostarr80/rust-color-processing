@@ -1,6 +1,6 @@
-extern crate color;
+extern crate colors;
 
-use color::Color;
+use colors::Color;
 
 #[test]
 fn test_new() {

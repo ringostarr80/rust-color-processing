@@ -3,6 +3,9 @@ name = "color_processing"
 version = "0.1.0"
 authors = ["Ringo Leese <webmaster@ringoleese.de>"]
 description = "A library to handle colors easyly. It can parse a string in several formats (hex, rgb, cmyk, hwb, ...) into the Color-struct, modifying (grayscale, colorize, ...) and output into several string formats."
+repository = "https://github.com/ringostarr80/rust-color-processing"
+homepage = "https://github.com/ringostarr80/rust-color-processing"
+readme = "README.md"
 license = "CC0-1.0"
 keywords = ["color", "colors", "colour", "css", "converter"]
 

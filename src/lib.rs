@@ -6,6 +6,56 @@
 //! modifying colors (inverting, grayscale, colorize, ...).
 //! 
 //! It's not intended for image manipulation, just for parsing and processing single colors.
+//! 
+//! # Examples
+//! 
+//! ```
+//! use color_processing::Color;
+//! 
+//! let red = Color::new_rgb(255, 0, 0);
+//! assert_eq!(255, red.red);
+//! assert_eq!(0, red.green);
+//! assert_eq!(0, red.blue);
+//! 
+//! let grayscaled_red = red.grayscale();
+//! assert_eq!(76, grayscaled_red.red);
+//! assert_eq!(76, grayscaled_red.green);
+//! assert_eq!(76, grayscaled_red.blue);
+//! 
+//! assert_eq!("#4C4C4C", grayscaled_red.to_hex_string());
+//! assert_eq!("rgb(76, 76, 76)", grayscaled_red.to_rgb_string());
+//! assert_eq!("cmyk(0%, 0%, 0%, 70.2%)", grayscaled_red.to_cmyk_string());
+//! assert_eq!("hsl(0, 0%, 29.8%)", grayscaled_red.to_hsl_string());
+//! 
+//! // for colorizing:
+//! let colorized_blue = grayscaled_red.colorize_string("blue").unwrap();
+//! assert_eq!("rgb(0, 0, 76)", colorized_blue.to_rgb_string());
+//! 
+//! // To get the raw values of a specific colorspace:
+//! // The ranges go from 0.0 (0%) to 1.0 (100%).
+//! let raw_rgba = red.get_rgba();
+//! assert_eq!(1.0, raw_rgba.0); // red value
+//! assert_eq!(0.0, raw_rgba.1); // green value
+//! assert_eq!(0.0, raw_rgba.2); // blue value
+//! assert_eq!(1.0, raw_rgba.3); // alpha value
+//! 
+//! let raw_cmyk = red.get_cmyk();
+//! assert_eq!(0.0, raw_cmyk.0); // cyan value
+//! assert_eq!(1.0, raw_cmyk.1); // magenta value
+//! assert_eq!(1.0, raw_cmyk.2); // yellow value
+//! assert_eq!(0.0, raw_cmyk.3); // key (black) value
+//! 
+//! // several ways of parsing strings is also possible:
+//! let green = Color::new_string("green").unwrap();
+//! let blue = Color::new_string("rgb(0, 0, 255)").unwrap();
+//! let cyan = Color::new_string("cmyk(100%, 0%, 0%, 0%)").unwrap();
+//! let yellow: Color = "yellow".parse().unwrap();
+//! let magenta = "yellow".parse::<Color>().unwrap();
+//! ```
+//! 
+//! Now, you should have a notion of what this library can do and if it is the right thing for you!
+//! 
+//! For all the available functionality, please lookout for the [Color](struct.Color.html)-struct.
 
 #[macro_use] extern crate lazy_static;
 
@@ -1053,9 +1103,10 @@ impl Color {
 	/// ```
     pub fn to_cmyk_string(&self) -> String {
 		let cmyk = self.get_cmyk();
+		let key_rounded = (cmyk.3 * 10000.0).round() / 100.0;
 
 		let mut cmyk_string = String::from("cmyk(");
-		cmyk_string.push_str(format!("{}%, {}%, {}%, {}%", cmyk.0 * 100.0, cmyk.1 * 100.0, cmyk.2 * 100.0, cmyk.3).as_str());
+		cmyk_string.push_str(format!("{}%, {}%, {}%, {}%", cmyk.0 * 100.0, cmyk.1 * 100.0, cmyk.2 * 100.0, key_rounded).as_str());
 		cmyk_string.push_str(")");
 		cmyk_string
 	}
@@ -1097,13 +1148,15 @@ impl Color {
 	/// ```
     pub fn to_hsl_string(&self) -> String {
 		let hsla = self.get_hsla();
+		let s_rounded = (hsla.1 * 10000.0).round() / 100.0;
+		let l_rounded = (hsla.2 * 10000.0).round() / 100.0;
 
 		let mut hsl_string = String::from("hsl");
 		if self.alpha != 255 {
 			hsl_string.push_str("a");
 		}
 		hsl_string.push_str("(");
-		hsl_string.push_str(format!("{}, {}%, {}%", hsla.0, hsla.1 * 100.0, hsla.2 * 100.0).as_str());
+		hsl_string.push_str(format!("{}, {}%, {}%", hsla.0, s_rounded, l_rounded).as_str());
 		if self.alpha != 255 {
 			// round with a precision of 2 decimals.
 			hsl_string.push_str(format!(", {}", (hsla.3 * 100.0).round() / 100.0).as_str());
@@ -2525,6 +2578,9 @@ mod tests {
     {
         let red_color = Color::new_string("red").unwrap();
         assert_eq!(red_color.to_cmyk_string(), "cmyk(0%, 100%, 100%, 0%)");
+
+		let grayscaled_red_color = red_color.grayscale();
+        assert_eq!(grayscaled_red_color.to_cmyk_string(), "cmyk(0%, 0%, 0%, 70.2%)");
     }
 
     #[test]

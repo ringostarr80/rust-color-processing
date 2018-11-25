@@ -278,6 +278,25 @@ impl Color {
 		}
 	}
 
+    /// Gets a new Color struct, that represents a color with a gray value.
+	/// 
+	/// * The value range of gray is from 0 to 255.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let gray = Color::new_gray(100);
+	/// 
+	/// assert_eq!(100, gray.red);
+	/// assert_eq!(100, gray.green);
+	/// assert_eq!(100, gray.blue);
+	/// assert_eq!(255, gray.alpha);
+	/// ```
+    pub fn new_gray(gray: u8) -> Color {
+        Color { red: gray, green: gray, blue: gray, alpha: 255 }
+    }
+
     /// Gets a new Color struct, that represents a color with the hue, saturation and lightness values.
 	/// 
 	/// * The value range of hue is from 0.0 to 360.0 in degrees.
@@ -494,9 +513,21 @@ impl Color {
 		}
 	}
 
-    /// Gets a new Option<Color>, that represents a color by a string.
+    /// Gets a new Option&lt;Color&gt;, that represents a color by a string.
     /// 
-	/// # Example
+    /// * Examples
+    ///   * [known color names](#known-color-names)
+    ///   * [abbreviated names](#abbreviated-names)
+    ///   * [hex notation](#hex-notation)
+    ///   * [rgb(a) notation](#rgb(a)-notation)
+    ///   * [gray notation](#gray-notation)
+    ///   * [cmyk notation](#cmyk-notation)
+    ///   * [hsl(a) notation](#hsl(a)-notation)
+    ///   * [hsv(a) notation](#hsv(a)-notation)
+    ///   * [hwb(a) notation](#hwb(a)-notation)
+    /// 
+    /// <a name="known-color-names"></a>
+	/// # Example (known color names)
 	/// ```
 	/// use color_processing::Color;
 	/// 
@@ -506,6 +537,12 @@ impl Color {
 	/// assert_eq!(0, red.green);
 	/// assert_eq!(0, red.blue);
 	/// assert_eq!(255, red.alpha);
+    /// ```
+    /// 
+    /// <a name="abbreviated-names"></a>
+    /// # Example (abbreviated names)
+    /// ```
+    /// use color_processing::Color;
     /// 
     /// let green = Color::new_string("GN").unwrap();
 	/// 
@@ -513,6 +550,12 @@ impl Color {
 	/// assert_eq!(128, green.green);
 	/// assert_eq!(0, green.blue);
 	/// assert_eq!(255, green.alpha);
+    /// ```
+    /// 
+    /// <a name="hex-notation"></a>
+    /// # Example (hex-notation)
+    /// ```
+    /// use color_processing::Color;
     /// 
     /// let blue = Color::new_string("#0000ff").unwrap();
 	/// 
@@ -541,6 +584,12 @@ impl Color {
 	/// assert_eq!(255, transparent_yellow.green);
 	/// assert_eq!(0, transparent_yellow.blue);
 	/// assert_eq!(119, transparent_yellow.alpha);
+    /// ```
+    /// 
+    /// <a name="rgb(a)-notation"></a>
+    /// # Example (rgb(a) notation)
+    /// ```
+    /// use color_processing::Color;
     /// 
     /// let red = Color::new_string("rgb(255, 0, 0)").unwrap();
     /// 
@@ -569,6 +618,42 @@ impl Color {
 	/// assert_eq!(255, yellow.green);
 	/// assert_eq!(0, yellow.blue);
 	/// assert_eq!(128, yellow.alpha);
+    /// ```
+    /// 
+    /// <a name="gray-notation"></a>
+    /// # Example (gray notation)
+    /// ```
+    /// use color_processing::Color;
+    /// 
+    /// let gray = Color::new_string("gray(128)").unwrap();
+    /// assert_eq!(128, gray.red);
+	/// assert_eq!(128, gray.green);
+	/// assert_eq!(128, gray.blue);
+	/// assert_eq!(255, gray.alpha);
+    /// 
+    /// let gray = Color::new_string("gray(50%)").unwrap();
+    /// assert_eq!(128, gray.red);
+	/// assert_eq!(128, gray.green);
+	/// assert_eq!(128, gray.blue);
+	/// assert_eq!(255, gray.alpha);
+    /// 
+    /// let transparent_light_gray = Color::new_string("gray(50, 0.75)").unwrap();
+    /// assert_eq!(50, transparent_light_gray.red);
+	/// assert_eq!(50, transparent_light_gray.green);
+	/// assert_eq!(50, transparent_light_gray.blue);
+	/// assert_eq!(191, transparent_light_gray.alpha);
+    /// 
+    /// let transparent_dark_gray = Color::new_string("gray(200, 50%)").unwrap();
+    /// assert_eq!(200, transparent_dark_gray.red);
+	/// assert_eq!(200, transparent_dark_gray.green);
+	/// assert_eq!(200, transparent_dark_gray.blue);
+	/// assert_eq!(128, transparent_dark_gray.alpha);
+    /// ```
+    /// 
+    /// <a name="cmyk-notation"></a>
+    /// # Example (cmyk notation)
+    /// ```
+    /// use color_processing::Color;
     /// 
     /// let red = Color::new_string("cmyk(0%, 100%, 100%, 0%)").unwrap();
     /// 
@@ -576,6 +661,12 @@ impl Color {
 	/// assert_eq!(0, red.green);
 	/// assert_eq!(0, red.blue);
 	/// assert_eq!(255, red.alpha);
+    /// ```
+    /// 
+    /// <a name="hsl(a)-notation"></a>
+    /// # Example (hsl(a) notation)
+    /// ```
+    /// use color_processing::Color;
     /// 
     /// let red = Color::new_string("hsl(0, 100%, 50%)").unwrap();
     /// assert_eq!(red.red, 255);
@@ -594,6 +685,12 @@ impl Color {
     /// assert_eq!(transparent_green.green, 255);
     /// assert_eq!(transparent_green.blue, 0);
     /// assert_eq!(transparent_green.alpha, 128);
+    /// ```
+    /// 
+    /// <a name="hsv(a)-notation"></a>
+    /// # Example (hsv(a) notation)
+    /// ```
+    /// use color_processing::Color;
     /// 
     /// let red = Color::new_string("hsv(0, 100%, 100%)").unwrap();
     /// assert_eq!(red.red, 255);
@@ -612,6 +709,12 @@ impl Color {
     /// assert_eq!(transparent_green.green, 255);
     /// assert_eq!(transparent_green.blue, 0);
     /// assert_eq!(transparent_green.alpha, 128);
+    /// ```
+    /// 
+    /// <a name="hwb(a)-notation"></a>
+    /// # Example (hwb(a) notation)
+    /// ```
+    /// use color_processing::Color;
     /// 
     /// let red = Color::new_string("hwb(0, 0%, 0%)").unwrap();
     /// assert_eq!(red.red, 255);
@@ -811,7 +914,7 @@ impl Color {
         (h, s, v, alpha)
 	}
 
-    /// Gets a hsva tuple of the color.
+    /// Gets a hwba tuple of the color.
 	/// 
 	/// This method returns a tuple of hue, whiteness, blackness and alpha of the color.  
 	/// The range for hue goes from 0.0 to 360.0 degrees.  
@@ -960,7 +1063,7 @@ impl Color {
 		(lab.0, c, h)
 	}
 
-	fn get_rgb_from_cmyk<'a>(mut c: f64, mut m: f64, mut y: f64, mut k: f64) -> (u8, u8, u8) {
+	fn get_rgb_from_cmyk(mut c: f64, mut m: f64, mut y: f64, mut k: f64) -> (u8, u8, u8) {
         if c < 0.0 {
             c = 0.0;
         }
@@ -1116,6 +1219,9 @@ impl Color {
 	}
 
     /// Gets a grayscaled color from the color.
+    /// 
+    /// This method uses the default formula used by PAL and NTSC systems.  
+    /// `Y = 0.299 * R + 0.587 * G + 0.114 * B`
 	/// 
 	/// # Example
 	/// ```
@@ -1130,7 +1236,7 @@ impl Color {
     /// assert_eq!(255, grayscaled_red.alpha);
 	/// ```
 	pub fn grayscale(&self) -> Color {
-		let gray_value = (self.red as f64 * 0.299 + self.green as f64 * 0.587 + self.blue as f64 * 0.114).floor() as u8;
+		let gray_value = (self.red as f64 * 0.299 + self.green as f64 * 0.587 + self.blue as f64 * 0.114).round() as u8;
 		Color {
             red: gray_value,
             green: gray_value,
@@ -1139,8 +1245,103 @@ impl Color {
         }
 	}
 
+    /// Gets a grayscaled color from the color.
+    /// 
+    /// This method uses the default formula used by HDTV systems.  
+    /// `Y = 0.2126 * R + 0.7152 * G + 0.0722 * B`
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let red = Color::new_string("rgb(255, 0, 0)").unwrap();
+    /// let grayscaled_red = red.grayscale_hdtv();
+	/// 
+	/// assert_eq!(54, grayscaled_red.red);
+    /// assert_eq!(54, grayscaled_red.green);
+    /// assert_eq!(54, grayscaled_red.blue);
+    /// assert_eq!(255, grayscaled_red.alpha);
+	/// ```
+	pub fn grayscale_hdtv(&self) -> Color {
+		let gray_value = (self.red as f64 * 0.2126 + self.green as f64 * 0.7152 + self.blue as f64 * 0.0722).round() as u8;
+		Color {
+            red: gray_value,
+            green: gray_value,
+            blue: gray_value,
+            alpha: self.alpha
+        }
+	}
+
+    /// Gets a grayscaled color from the color.
+    /// 
+    /// This method uses the default formula used by HDTV systems.  
+    /// `Y = 0.2627 * R + 0.678 * G + 0.0593 * B`
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let red = Color::new_string("rgb(255, 0, 0)").unwrap();
+    /// let grayscaled_red = red.grayscale_hdr();
+	/// 
+	/// assert_eq!(67, grayscaled_red.red);
+    /// assert_eq!(67, grayscaled_red.green);
+    /// assert_eq!(67, grayscaled_red.blue);
+    /// assert_eq!(255, grayscaled_red.alpha);
+	/// ```
+	pub fn grayscale_hdr(&self) -> Color {
+		let gray_value = (self.red as f64 * 0.2627 + self.green as f64 * 0.678 + self.blue as f64 * 0.0593).round() as u8;
+		Color {
+            red: gray_value,
+            green: gray_value,
+            blue: gray_value,
+            alpha: self.alpha
+        }
+	}
+
+    /// Gets a monochromed (black or white) color from the color.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let darker_gray = Color::new_string("rgb(100, 100, 100)").unwrap();
+    /// let lighter_gray = Color::new_string("rgb(200, 200, 200)").unwrap();
+    /// let black = darker_gray.monochrome();
+    /// let white = lighter_gray.monochrome();
+	/// 
+	/// assert_eq!(0, black.red);
+    /// assert_eq!(0, black.green);
+    /// assert_eq!(0, black.blue);
+    /// assert_eq!(255, black.alpha);
+    /// 
+    /// assert_eq!(255, white.red);
+    /// assert_eq!(255, white.green);
+    /// assert_eq!(255, white.blue);
+    /// assert_eq!(255, white.alpha);
+	/// ```
+    pub fn monochrome(&self) -> Color {
+        let grayscaled = self.grayscale();
+        if grayscaled.red < 128 {
+            Color { red: 0, green: 0, blue: 0, alpha: grayscaled.alpha }
+        } else {
+            Color { red: 255, green: 255, blue: 255, alpha: grayscaled.alpha }
+        }
+    }
+
+    /// Gets the inverted color of a color.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let black = Color::new_string("#000000").unwrap();
+    /// let black_inverted = black.invert();
+	/// 
+	/// assert_eq!("#FFFFFF", black_inverted.to_hex_string());
+	/// ```
 	pub fn invert(&self) -> Color {
-		Color {alpha: self.alpha, red: 255 - self.red, green: 255 - self.green, blue: 255 - self.blue}
+		Color { red: 255 - self.red, green: 255 - self.green, blue: 255 - self.blue, alpha: self.alpha }
 	}
 
 	pub fn invert_luminescence(&self) -> Color {
@@ -1415,7 +1616,23 @@ impl Color {
 
     fn try_parse_css_function(string: &str) -> Option<Color> {
 		lazy_static! {
-			static ref re_css_function: Regex = Regex::new(r"^(cmyk|rgba?|hsla?|hsva?|hwba?)\s*\(\s*(-?\d+(\.\d+)?)\s*(%|°)?\s*,\s*(-?\d+(\.\d+)?)\s*(%)?\s*,\s*(-?\d+(\.\d+)?)\s*(%)?\s*(,\s*(-?\d+(\.\d+)?)\s*(%)?\s*)?\)$").unwrap();
+            // cap[1] -> css-function
+            // cap[2] -> 1. value
+            // cap[3] -> 1. value after dot
+            // cap[4] -> unit of 1. value (° or % or empty)
+            // cap[5] -> 2., 3. and 4. value
+            // cap[6] -> 2. value
+            // cap[7] -> 2. value after dot
+            // cap[8] -> unit of 2. value (% or empty)
+            // cap[9] -> 3. and 4. value
+            // cap[10] -> 3. value
+            // cap[11] -> 3. value after dot
+            // cap[12] -> unit of 3. value (% or empty)
+            // cap[13] -> whole 4. value
+            // cap[14] -> 4. value
+            // cap[15] -> 4. value after dot
+            // cap[16] -> unit of 4. value
+			static ref re_css_function: Regex = Regex::new(r"^(cmyk|gray|grey|hsla?|hsva?|hwba?|rgba?)\s*\(\s*(-?\d+(\.\d+)?)\s*(%|°)?\s*(,\s*(-?\d+(\.\d+)?)\s*(%)?\s*(,\s*(-?\d+(\.\d+)?)\s*(%)?\s*(,\s*(-?\d+(\.\d+)?)\s*(%)?\s*)?)?)?\)$").unwrap();
 		}
 		let caps = re_css_function.captures(string);
         if caps.is_none() {
@@ -1427,6 +1644,8 @@ impl Color {
         let mut force_alpha = false;
         let css_base_function = match css_function {
             "cmyk" => "cmyk",
+            "gray" => "gray",
+            "grey" => "gray",
             "rgb" => "rgb",
             "rgba" => {
                 force_alpha = true;
@@ -1451,23 +1670,37 @@ impl Color {
         };
 
         let mut value_1: f64 = String::from(&cap[2]).parse().unwrap();
-        let mut value_2: f64 = String::from(&cap[5]).parse().unwrap();
-        let mut value_3: f64 = String::from(&cap[8]).parse().unwrap();
-        let value_4_opt = if cap.get(12).is_some() && cap[12].len() > 0 {
-            let float: f64 = String::from(&cap[12]).parse().unwrap();
+        let value_2_opt = if cap.get(6).is_some() && cap[6].len() > 0 {
+            let float: f64 = String::from(&cap[6]).parse().unwrap();
+            Some(float)
+        } else {
+            None
+        };
+        let value_3_opt = if cap.get(10).is_some() && cap[10].len() > 0 {
+            let float: f64 = String::from(&cap[10]).parse().unwrap();
+            Some(float)
+        } else {
+            None
+        };
+        let value_4_opt = if cap.get(14).is_some() && cap[14].len() > 0 {
+            let float: f64 = String::from(&cap[14]).parse().unwrap();
             Some(float)
         } else {
             None
         };
 
-        let get_alpha = |alpha_option: Option<f64>| -> Option<u8> {
+        let get_alpha = |alpha_option: Option<f64>, is_percentage: bool| -> Option<u8> {
             if alpha_option.is_some() {
                 let mut alpha = alpha_option.unwrap();
                 if alpha < 0.0 {
                     alpha = 0.0;
-                }
-                if alpha > 1.0 {
+                } else if is_percentage && alpha > 100.0 {
+                    alpha = 100.0;
+                } else if !is_percentage && alpha > 1.0 {
                     alpha = 1.0;
+                }
+                if is_percentage {
+                    alpha /= 100.0;
                 }
 
                 Some((alpha * 255.0).round() as u8)
@@ -1481,28 +1714,36 @@ impl Color {
 
         match css_base_function {
             "cmyk" => {
-                if value_4_opt.is_none() {
+                if value_2_opt.is_none() || value_3_opt.is_none() || value_4_opt.is_none() {
                     return None;
                 }
-                let mut value_4 = value_4_opt.unwrap();
                 if &cap[4] == "°" {
                     return None;
                 }
+
+                let value_2 = value_2_opt.unwrap();
+                let value_3 = value_3_opt.unwrap();
+                let value_4 = value_4_opt.unwrap();
 
                 let rgb = Color::get_rgb_from_cmyk(value_1 / 100.0, value_2 / 100.0, value_3 / 100.0, value_4 / 100.0);
                 Some(Color::new_rgb(rgb.0, rgb.1, rgb.2))
             },
             "rgb" => {
+                if value_2_opt.is_none() || value_3_opt.is_none() {
+                    return None;
+                }
                 if cap.get(4).is_some() && &cap[4] == "°" {
                     return None;
                 }
+                let mut value_2 = value_2_opt.unwrap();
+                let mut value_3 = value_3_opt.unwrap();
                 let is_in_percentage_mode = if cap.get(4).is_some() && &cap[4] == "%" {
                     true
                 } else {
                     false
                 };
                 if is_in_percentage_mode {
-                    if &cap[7] != "%" || &cap[10] != "%" {
+                    if &cap[8] != "%" || &cap[12] != "%" {
                         return None;
                     }
                 }
@@ -1516,7 +1757,7 @@ impl Color {
                     value_3 = 0.0;
                 }
 
-                let alpha_opt = get_alpha(value_4_opt);
+                let alpha_opt = get_alpha(value_4_opt, false);
                 if alpha_opt.is_none() {
                     return None;
                 }
@@ -1553,11 +1794,16 @@ impl Color {
                 Some(Color::new_rgba(rgb.0, rgb.1, rgb.2, alpha_opt.unwrap()))
             },
             "hsl" => {
+                if value_2_opt.is_none() || value_3_opt.is_none() {
+                    return None;
+                }
                 if cap.get(4).is_some() && &cap[4] == "%" {
                     return None;
                 }
 
-                let alpha_opt = get_alpha(value_4_opt);
+                let value_2 = value_2_opt.unwrap();
+                let value_3 = value_3_opt.unwrap();
+                let alpha_opt = get_alpha(value_4_opt, false);
                 if alpha_opt.is_none() {
                     return None;
                 }
@@ -1567,11 +1813,16 @@ impl Color {
                 Some(Color::new_rgba(rgb.0, rgb.1, rgb.2, alpha_opt.unwrap()))
             },
             "hsv" => {
+                if value_2_opt.is_none() || value_3_opt.is_none() {
+                    return None;
+                }
                 if cap.get(4).is_some() && &cap[4] == "%" {
                     return None;
                 }
 
-                let alpha_opt = get_alpha(value_4_opt);
+                let value_2 = value_2_opt.unwrap();
+                let value_3 = value_3_opt.unwrap();
+                let alpha_opt = get_alpha(value_4_opt, false);
                 if alpha_opt.is_none() {
                     return None;
                 }
@@ -1581,11 +1832,16 @@ impl Color {
                 Some(Color::new_rgba(rgb.0, rgb.1, rgb.2, alpha_opt.unwrap()))
             },
             "hwb" => {
+                if value_2_opt.is_none() || value_3_opt.is_none() {
+                    return None;
+                }
                 if cap.get(4).is_some() && &cap[4] == "%" {
                     return None;
                 }
 
-                let alpha_opt = get_alpha(value_4_opt);
+                let value_2 = value_2_opt.unwrap();
+                let value_3 = value_3_opt.unwrap();
+                let alpha_opt = get_alpha(value_4_opt, false);
                 if alpha_opt.is_none() {
                     return None;
                 }
@@ -1593,6 +1849,35 @@ impl Color {
                 let rgb = Color::get_rgb_from_hwb(value_1, value_2 / 100.0, value_3 / 100.0);
 
                 Some(Color::new_rgba(rgb.0, rgb.1, rgb.2, alpha_opt.unwrap()))
+            },
+            "gray" => {
+                let is_in_percentage_mode = if cap.get(4).is_some() && &cap[4] == "%" {
+                    true
+                } else {
+                    false
+                };
+                let alpha_is_in_percentage_mode = if cap.get(8).is_some() && &cap[8] == "%" {
+                    true
+                } else {
+                    false
+                };
+                if value_1 < 0.0 {
+                    value_1 = 0.0;
+                }
+                if is_in_percentage_mode && value_1 > 100.0 {
+                    value_1 = 100.0;
+                } else if !is_in_percentage_mode && value_1 > 255.0 {
+                    value_1 = 255.0;
+                };
+                let gray_value = if is_in_percentage_mode {
+                    (value_1 / 100.0 * 255.0).round() as u8
+                } else {
+                    value_1.round() as u8
+                };
+
+                let alpha = get_alpha(value_2_opt, alpha_is_in_percentage_mode).unwrap_or(255);
+
+                Some(Color::new_rgba(gray_value, gray_value, gray_value, alpha))
             },
             _ => None
         }
@@ -2609,6 +2894,33 @@ mod tests {
     }
 
     #[test]
+    fn color_new_string_gray() {
+        let light_gray = Color::new_string("gray(100)").unwrap();
+        assert_eq!(100, light_gray.red);
+        assert_eq!(100, light_gray.green);
+        assert_eq!(100, light_gray.blue);
+        assert_eq!(255, light_gray.alpha);
+
+        let dark_gray_with_alpha = Color::new_string("gray(200, 0.5)").unwrap();
+        assert_eq!(200, dark_gray_with_alpha.red);
+        assert_eq!(200, dark_gray_with_alpha.green);
+        assert_eq!(200, dark_gray_with_alpha.blue);
+        assert_eq!(128, dark_gray_with_alpha.alpha);
+
+        let medium_gray_with_alpha = Color::new_string("gray(128, 25%)").unwrap();
+        assert_eq!(128, medium_gray_with_alpha.red);
+        assert_eq!(128, medium_gray_with_alpha.green);
+        assert_eq!(128, medium_gray_with_alpha.blue);
+        assert_eq!(64, medium_gray_with_alpha.alpha);
+
+        let medium_gray = Color::new_string("gray(50%)").unwrap();
+        assert_eq!(128, medium_gray.red);
+        assert_eq!(128, medium_gray.green);
+        assert_eq!(128, medium_gray.blue);
+        assert_eq!(255, medium_gray.alpha);
+    }
+
+    #[test]
     fn color_new_string_cmyk() {
         let red_color = Color::new_string("cmyk(0%, 100%, 100%, 0%)").unwrap();
         assert_eq!(red_color.red, 255);
@@ -2882,10 +3194,25 @@ mod tests {
     }
 
     #[test]
+    fn color_new_gray() {
+        let gray1 = Color::new_gray(100);
+        assert_eq!(100, gray1.red);
+        assert_eq!(100, gray1.green);
+        assert_eq!(100, gray1.blue);
+        assert_eq!(255, gray1.alpha);
+
+        let gray2 = Color::new_gray(211);
+        assert_eq!(211, gray2.red);
+        assert_eq!(211, gray2.green);
+        assert_eq!(211, gray2.blue);
+        assert_eq!(255, gray2.alpha);
+    }
+
+    #[test]
     fn color_grayscale() {
         let color = Color::new_string("#FF7300").unwrap();
         let grayscaled = color.grayscale();
-        assert_eq!(grayscaled.to_hex_string(), "#8F8F8F");
+        assert_eq!(grayscaled.to_hex_string(), "#909090");
 
         let red = Color::new_string("rgb(255, 0, 0)").unwrap();
         let grayscaled_red = red.grayscale();
@@ -2896,9 +3223,9 @@ mod tests {
 
         let green = Color::new_string("rgb(0, 255, 0)").unwrap();
         let grayscaled_green = green.grayscale();
-        assert_eq!(149, grayscaled_green.red);
-        assert_eq!(149, grayscaled_green.green);
-        assert_eq!(149, grayscaled_green.blue);
+        assert_eq!(150, grayscaled_green.red);
+        assert_eq!(150, grayscaled_green.green);
+        assert_eq!(150, grayscaled_green.blue);
         assert_eq!(255, grayscaled_green.alpha);
 
         let blue = Color::new_string("rgb(0, 0, 255)").unwrap();
@@ -2910,10 +3237,149 @@ mod tests {
     }
 
     #[test]
+    fn color_grayscale_hdtv() {
+        let color = Color::new_string("#FF7300").unwrap();
+        let grayscaled = color.grayscale_hdtv();
+        assert_eq!(grayscaled.to_hex_string(), "#888888");
+
+        let red = Color::new_string("rgb(255, 0, 0)").unwrap();
+        let grayscaled_red = red.grayscale_hdtv();
+        assert_eq!(54, grayscaled_red.red);
+        assert_eq!(54, grayscaled_red.green);
+        assert_eq!(54, grayscaled_red.blue);
+        assert_eq!(255, grayscaled_red.alpha);
+
+        let green = Color::new_string("rgb(0, 255, 0)").unwrap();
+        let grayscaled_green = green.grayscale_hdtv();
+        assert_eq!(182, grayscaled_green.red);
+        assert_eq!(182, grayscaled_green.green);
+        assert_eq!(182, grayscaled_green.blue);
+        assert_eq!(255, grayscaled_green.alpha);
+
+        let blue = Color::new_string("rgb(0, 0, 255)").unwrap();
+        let grayscaled_blue = blue.grayscale_hdtv();
+        assert_eq!(18, grayscaled_blue.red);
+        assert_eq!(18, grayscaled_blue.green);
+        assert_eq!(18, grayscaled_blue.blue);
+        assert_eq!(255, grayscaled_blue.alpha);
+    }
+
+    #[test]
+    fn color_grayscale_hdr() {
+        let color = Color::new_string("#FF7300").unwrap();
+        let grayscaled = color.grayscale_hdr();
+        assert_eq!(grayscaled.to_hex_string(), "#919191");
+
+        let red = Color::new_string("rgb(255, 0, 0)").unwrap();
+        let grayscaled_red = red.grayscale_hdr();
+        assert_eq!(67, grayscaled_red.red);
+        assert_eq!(67, grayscaled_red.green);
+        assert_eq!(67, grayscaled_red.blue);
+        assert_eq!(255, grayscaled_red.alpha);
+
+        let green = Color::new_string("rgb(0, 255, 0)").unwrap();
+        let grayscaled_green = green.grayscale_hdr();
+        assert_eq!(173, grayscaled_green.red);
+        assert_eq!(173, grayscaled_green.green);
+        assert_eq!(173, grayscaled_green.blue);
+        assert_eq!(255, grayscaled_green.alpha);
+
+        let blue = Color::new_string("rgb(0, 0, 255)").unwrap();
+        let grayscaled_blue = blue.grayscale_hdr();
+        assert_eq!(15, grayscaled_blue.red);
+        assert_eq!(15, grayscaled_blue.green);
+        assert_eq!(15, grayscaled_blue.blue);
+        assert_eq!(255, grayscaled_blue.alpha);
+    }
+
+    #[test]
+    fn color_monochrome()
+    {
+        let white = Color::new_string("white").unwrap();
+        let monochromed_white = white.monochrome();
+        assert_eq!(255, monochromed_white.red);
+        assert_eq!(255, monochromed_white.green);
+        assert_eq!(255, monochromed_white.blue);
+        assert_eq!(255, monochromed_white.alpha);
+
+        let black = Color::new_string("black").unwrap();
+        let monochromed_black = black.monochrome();
+        assert_eq!(0, monochromed_black.red);
+        assert_eq!(0, monochromed_black.green);
+        assert_eq!(0, monochromed_black.blue);
+        assert_eq!(255, monochromed_black.alpha);
+        
+        let gray1 = Color::new_rgb(127, 127, 127);
+        let monochromed_gray1 = gray1.monochrome();
+        assert_eq!(0, monochromed_gray1.red);
+        assert_eq!(0, monochromed_gray1.green);
+        assert_eq!(0, monochromed_gray1.blue);
+        assert_eq!(255, monochromed_gray1.alpha);
+
+        let gray2 = Color::new_rgb(128, 128, 128);
+        let grayscaled_gray2 = gray2.grayscale();
+        assert_eq!(128, grayscaled_gray2.red);
+        assert_eq!(128, grayscaled_gray2.green);
+        assert_eq!(128, grayscaled_gray2.blue);
+        assert_eq!(255, grayscaled_gray2.alpha);
+        let monochromed_gray2 = gray2.monochrome();
+        assert_eq!(255, monochromed_gray2.red);
+        assert_eq!(255, monochromed_gray2.green);
+        assert_eq!(255, monochromed_gray2.blue);
+        assert_eq!(255, monochromed_gray2.alpha);
+    }
+
+    #[test]
     fn color_invert() {
         let white = Color::new_string("#FFFFFF").unwrap();
         let inverted_white = white.invert();
         assert_eq!(inverted_white.to_hex_string(), "#000000");
+
+        let black = Color::new_string("#000000").unwrap();
+        let inverted_black = black.invert();
+        assert_eq!(inverted_black.to_hex_string(), "#FFFFFF");
+
+        // some examples from: https://en.wikipedia.org/wiki/Negative_(photography)
+
+        let color1 = Color::new_string("#550e0c").unwrap();
+        let color1_inverted = color1.invert();
+        assert_eq!("#AAF1F3", color1_inverted.to_hex_string());
+
+        let color2 = Color::new_string("#ff0000").unwrap();
+        let color2_inverted = color2.invert();
+        assert_eq!("#00FFFF", color2_inverted.to_hex_string());
+
+        let color3 = Color::new_string("#006400").unwrap();
+        let color3_inverted = color3.invert();
+        assert_eq!("#FF9BFF", color3_inverted.to_hex_string());
+
+        let color4 = Color::new_string("#00ff00").unwrap();
+        let color4_inverted = color4.invert();
+        assert_eq!("#FF00FF", color4_inverted.to_hex_string());
+
+        let color5 = Color::new_string("#0000ff").unwrap();
+        let color5_inverted = color5.invert();
+        assert_eq!("#FFFF00", color5_inverted.to_hex_string());
+
+        let color6 = Color::new_string("#ff7f00").unwrap();
+        let color6_inverted = color6.invert();
+        assert_eq!("#0080FF", color6_inverted.to_hex_string());
+
+        let color7 = Color::new_string("#800080").unwrap();
+        let color7_inverted = color7.invert();
+        assert_eq!("#7FFF7F", color7_inverted.to_hex_string());
+
+        let color8 = Color::new_string("#ffb6c1").unwrap();
+        let color8_inverted = color8.invert();
+        assert_eq!("#00493E", color8_inverted.to_hex_string());
+
+        let color9 = Color::new_string("#964b00").unwrap();
+        let color9_inverted = color9.invert();
+        assert_eq!("#69B4FF", color9_inverted.to_hex_string());
+
+        let color10 = Color::new_string("#ffcc99").unwrap();
+        let color10_inverted = color10.invert();
+        assert_eq!("#003366", color10_inverted.to_hex_string());
     }
 
     #[test]

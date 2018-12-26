@@ -1,0 +1,7 @@
+[package]
+name = "html_visualizer"
+version = "0.1.0"
+authors = ["Ringo Leese <webmaster@ringoleese.de>"]
+
+[dependencies]
+color_processing = { path = "../lib" }

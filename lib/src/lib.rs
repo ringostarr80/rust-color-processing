@@ -2024,7 +2024,7 @@ impl Color {
 			"peru" => Some(Color::new_enum(KnownColors::Peru)),
 			"pink" => Some(Color::new_enum(KnownColors::Pink)),
 			"plum" => Some(Color::new_enum(KnownColors::Plum)),
-			"powderBlue" => Some(Color::new_enum(KnownColors::PowderBlue)),
+			"powderblue" => Some(Color::new_enum(KnownColors::PowderBlue)),
 			"purple" => Some(Color::new_enum(KnownColors::Purple)),
 			"red" => Some(Color::new_enum(KnownColors::Red)),
 			"rosybrown" => Some(Color::new_enum(KnownColors::RosyBrown)),

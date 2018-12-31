@@ -31,7 +31,26 @@ fn build_index_html() -> std::io::Result<()> {
     index_html_content.push_str("   </head>\n");
     index_html_content.push_str("   <body>\n");
     index_html_content.push_str("       <h1>color_processing visualizer</h1>\n");
-    index_html_content.push_str("       <a href=\"enum-string-comparison.html\">enum-string-comparison</a>");
+    index_html_content.push_str("       <ul>");
+    index_html_content.push_str("           <li>");
+    index_html_content.push_str("               <a href=\"enum-string-comparison.html\">enum-string-comparison</a><br />");
+    index_html_content.push_str("           </li>");
+    index_html_content.push_str("           <li>");
+    index_html_content.push_str("               <a href=\"cmyk-examples.html\">cmyk examples</a>");
+    index_html_content.push_str("           </li>");
+    index_html_content.push_str("           <li>");
+    index_html_content.push_str("               <a href=\"gray-examples.html\">gray examples</a>");
+    index_html_content.push_str("           </li>");
+    index_html_content.push_str("           <li>");
+    index_html_content.push_str("               <a href=\"hsl-examples.html\">hsl examples</a>");
+    index_html_content.push_str("           </li>");
+    index_html_content.push_str("           <li>");
+    index_html_content.push_str("               <a href=\"hsv-examples.html\">hsv examples</a>");
+    index_html_content.push_str("           </li>");
+    index_html_content.push_str("           <li>");
+    index_html_content.push_str("               <a href=\"hwb-examples.html\">hwb examples</a>");
+    index_html_content.push_str("           </li>");
+    index_html_content.push_str("       </ul>");
     index_html_content.push_str("   </body>\n");
     index_html_content.push_str("</html>\n");
 
@@ -45,6 +64,26 @@ fn build_index_html() -> std::io::Result<()> {
     let enum_string_comparison_html_content = build_enum_string_comparison_html();
     let mut enum_string_comparison_html_file = File::create("output/enum-string-comparison.html")?;
     enum_string_comparison_html_file.write_all(enum_string_comparison_html_content.as_bytes())?;
+
+    let cmyk_examples_html_content = build_cmyk_examples_html();
+    let mut cmyk_examples_file = File::create("output/cmyk-examples.html")?;
+    cmyk_examples_file.write_all(cmyk_examples_html_content.as_bytes())?;
+
+    let gray_examples_html_content = build_gray_examples_html();
+    let mut gray_examples_file = File::create("output/gray-examples.html")?;
+    gray_examples_file.write_all(gray_examples_html_content.as_bytes())?;
+
+    let hsl_examples_html_content = build_hsl_examples_html();
+    let mut hsl_examples_file = File::create("output/hsl-examples.html")?;
+    hsl_examples_file.write_all(hsl_examples_html_content.as_bytes())?;
+
+    let hsv_examples_html_content = build_hsv_examples_html();
+    let mut hsv_examples_file = File::create("output/hsv-examples.html")?;
+    hsv_examples_file.write_all(hsv_examples_html_content.as_bytes())?;
+
+    let hwb_examples_html_content = build_hwb_examples_html();
+    let mut hwb_examples_file = File::create("output/hwb-examples.html")?;
+    hwb_examples_file.write_all(hwb_examples_html_content.as_bytes())?;
 
     Ok(())
 }
@@ -82,6 +121,7 @@ fn build_enum_string_comparison_html() -> String {
     html_content.push_str("     <link rel=\"stylesheet\" href=\"index.css\">\n");
     html_content.push_str(" </head>\n");
     html_content.push_str(" <body>\n");
+    html_content.push_str("     <a href=\"index.html\">&lt; back</a>");
     html_content.push_str("     <table class=\"center\">\n");
     html_content.push_str("         <thead>\n");
     html_content.push_str("             <tr>\n");
@@ -241,6 +281,78 @@ fn build_enum_string_comparison_html() -> String {
     return html_content;
 }
 
+fn build_cmyk_examples_html() -> String {
+    let mut html_content = String::new();
+    html_content.push_str("<!DOCTYPE html>\n");
+    html_content.push_str("<html>\n");
+    html_content.push_str(" <head>\n");
+    html_content.push_str("     <title>cmyk-examples</title>\n");
+    html_content.push_str("     <link rel=\"stylesheet\" href=\"index.css\">\n");
+    html_content.push_str(" </head>\n");
+    html_content.push_str(" <body>\n");
+    html_content.push_str("     <a href=\"index.html\">&lt; back</a>");
+    html_content.push_str("     <table class=\"center\">\n");
+    html_content.push_str("         <thead>\n");
+    html_content.push_str("             <tr>\n");
+    html_content.push_str("                 <th>values</th>\n");
+    html_content.push_str("                 <th>by rust Color::new_cmyk(cyan, magenta, yellow, key)</th>\n");
+    html_content.push_str("                 <th>by rust Color::new_string(\"cmyk(&lt;c&gt;%, &lt;m&gt;%, &lt;y&gt;%, &lt;k&gt;%)\")</th>\n");
+    html_content.push_str("             </tr>\n");
+    html_content.push_str("         </thead>\n");
+    html_content.push_str("         <tbody>\n");
+    html_content.push_str(build_cmyk_color_table_row(0.0, 0.0, 0.0, 0.0).as_str());
+    html_content.push_str(build_cmyk_color_table_row(0.0, 0.0, 0.0, 0.25).as_str());
+    html_content.push_str(build_cmyk_color_table_row(0.0, 0.0, 0.0, 0.5).as_str());
+    html_content.push_str(build_cmyk_color_table_row(0.0, 0.0, 0.0, 0.75).as_str());
+    html_content.push_str(build_cmyk_color_table_row(0.0, 0.0, 0.0, 1.0).as_str());
+    html_content.push_str(build_cmyk_color_table_row(1.0, 0.0, 0.0, 0.0).as_str());
+    html_content.push_str(build_cmyk_color_table_row(0.0, 1.0, 0.0, 0.0).as_str());
+    html_content.push_str(build_cmyk_color_table_row(0.0, 0.0, 1.0, 0.0).as_str());
+    html_content.push_str(build_cmyk_color_table_row(0.0, 1.0, 1.0, 0.0).as_str());
+    html_content.push_str(build_cmyk_color_table_row(1.0, 0.0, 1.0, 0.0).as_str());
+    html_content.push_str(build_cmyk_color_table_row(1.0, 1.0, 0.0, 0.0).as_str());
+    html_content.push_str(build_cmyk_color_table_row(1.0, 0.0, 0.0, 0.5).as_str());
+    html_content.push_str(build_cmyk_color_table_row(0.0, 1.0, 0.0, 0.5).as_str());
+    html_content.push_str(build_cmyk_color_table_row(0.0, 0.0, 1.0, 0.5).as_str());
+    html_content.push_str(build_cmyk_color_table_row(0.0, 1.0, 1.0, 0.5).as_str());
+    html_content.push_str(build_cmyk_color_table_row(1.0, 0.0, 1.0, 0.5).as_str());
+    html_content.push_str(build_cmyk_color_table_row(1.0, 1.0, 0.0, 0.5).as_str());
+    html_content.push_str("         </tbody>\n");
+    html_content.push_str("     </table>\n");
+    html_content.push_str(" </body>\n");
+    html_content.push_str("</html>\n");
+
+    return html_content;
+}
+
+fn build_cmyk_color_table_row(cyan: f64, magenta: f64, yellow: f64, key: f64) -> String {
+    let mut cmyk_string = String::from("cmyk(");
+    cmyk_string.push_str(format!("{}%, {}%, {}%, {}%", cyan * 100.0, magenta * 100.0, yellow * 100.0, key * 100.0).as_str());
+    cmyk_string.push_str(")");
+    let cmyk_by_string = Color::new_string(cmyk_string.as_str()).unwrap();
+
+    let cmyk = Color::new_cmyk(cyan, magenta, yellow, key);
+    let cmyk_string = cmyk.to_cmyk_string();
+    let cmyk_str = cmyk_string.as_str();
+    let hex_string = cmyk.to_hex_string();
+    let hex_str = hex_string.as_str();
+
+    let mut row_content = String::new();
+    row_content.push_str("              <tr>\n");
+    row_content.push_str("                  <td>");
+    row_content.push_str(cmyk_str);
+    row_content.push_str("</td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(hex_str);
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(cmyk_by_string.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("              </tr>\n");
+
+    return row_content;
+}
+
 fn build_color_table_row(color_name: &str, known_color: KnownColors) -> String {
     let mut row_content = String::new();
     row_content.push_str("             <tr>\n");
@@ -261,4 +373,273 @@ fn build_color_table_row(color_name: &str, known_color: KnownColors) -> String {
     row_content.push_str("             </tr>\n");
 
     return row_content;
+}
+
+fn build_gray_color_table_row(gray: u8) -> String {
+    let gray_string = format!("gray({})", gray);
+    let gray_by_string = Color::new_string(gray_string.as_str()).unwrap();
+
+    let gray = Color::new_gray(gray);
+    let gray_string = gray.to_gray_string();
+    let gray_str = gray_string.as_str();
+    let hex_string = gray.to_hex_string();
+    let hex_str = hex_string.as_str();
+
+    let mut row_content = String::new();
+    row_content.push_str("              <tr>\n");
+    row_content.push_str("                  <td>");
+    row_content.push_str(gray_str);
+    row_content.push_str("</td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(hex_str);
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(gray_by_string.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("              </tr>\n");
+
+    return row_content;
+}
+
+fn build_hsl_color_table_row(h: f64, s: f64, l: f64) -> String {
+    let hsl_string = format!("hsl({}, {}%, {}%)", h, s * 100.0, l * 100.0);
+    let hsl_by_string = Color::new_string(hsl_string.as_str()).unwrap();
+
+    let hsl = Color::new_hsl(h, s, l);
+    let hsl_string = hsl.to_hsl_string();
+    let hsl_str = hsl_string.as_str();
+    let hex_string = hsl.to_hex_string();
+    let hex_str = hex_string.as_str();
+
+    let mut row_content = String::new();
+    row_content.push_str("              <tr>\n");
+    row_content.push_str("                  <td>");
+    row_content.push_str(hsl_str);
+    row_content.push_str("</td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(hex_str);
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(hsl_by_string.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("              </tr>\n");
+
+    return row_content;
+}
+
+fn build_hsv_color_table_row(h: f64, s: f64, v: f64) -> String {
+    let hsv_string = format!("hsv({}, {}%, {}%)", h, s * 100.0, v * 100.0);
+    let hsv_by_string = Color::new_string(hsv_string.as_str()).unwrap();
+
+    let hsv = Color::new_hsv(h, s, v);
+    let hsv_string = hsv.to_hsv_string();
+    let hsv_str = hsv_string.as_str();
+    let hex_string = hsv.to_hex_string();
+    let hex_str = hex_string.as_str();
+
+    let mut row_content = String::new();
+    row_content.push_str("              <tr>\n");
+    row_content.push_str("                  <td>");
+    row_content.push_str(hsv_str);
+    row_content.push_str("</td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(hex_str);
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(hsv_by_string.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("              </tr>\n");
+
+    return row_content;
+}
+
+fn build_hwb_color_table_row(h: f64, w: f64, b: f64) -> String {
+    let hwb_string = format!("hwb({}, {}%, {}%)", h, w * 100.0, b * 100.0);
+    let hwb_by_string = Color::new_string(hwb_string.as_str()).unwrap();
+
+    let hwb = Color::new_hwb(h, w, b);
+    let hwb_string = hwb.to_hwb_string();
+    let hwb_str = hwb_string.as_str();
+    let hex_string = hwb.to_hex_string();
+    let hex_str = hex_string.as_str();
+
+    let mut row_content = String::new();
+    row_content.push_str("              <tr>\n");
+    row_content.push_str("                  <td>");
+    row_content.push_str(hwb_str);
+    row_content.push_str("</td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(hex_str);
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(hwb_by_string.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("              </tr>\n");
+
+    return row_content;
+}
+
+fn build_gray_examples_html() -> String {
+    let mut html_content = String::new();
+    html_content.push_str("<!DOCTYPE html>\n");
+    html_content.push_str("<html>\n");
+    html_content.push_str(" <head>\n");
+    html_content.push_str("     <title>gray-examples</title>\n");
+    html_content.push_str("     <link rel=\"stylesheet\" href=\"index.css\">\n");
+    html_content.push_str(" </head>\n");
+    html_content.push_str(" <body>\n");
+    html_content.push_str("     <a href=\"index.html\">&lt; back</a>");
+    html_content.push_str("     <table class=\"center\">\n");
+    html_content.push_str("         <thead>\n");
+    html_content.push_str("             <tr>\n");
+    html_content.push_str("                 <th>value</th>\n");
+    html_content.push_str("                 <th>by rust Color::new_gray(gray)</th>\n");
+    html_content.push_str("                 <th>by rust Color::new_string(\"gray(&lt;gray&gt;)\")</th>\n");
+    html_content.push_str("             </tr>\n");
+    html_content.push_str("         </thead>\n");
+    html_content.push_str("         <tbody>\n");
+    html_content.push_str(build_gray_color_table_row(0).as_str());
+    html_content.push_str(build_gray_color_table_row(32).as_str());
+    html_content.push_str(build_gray_color_table_row(64).as_str());
+    html_content.push_str(build_gray_color_table_row(92).as_str());
+    html_content.push_str(build_gray_color_table_row(128).as_str());
+    html_content.push_str(build_gray_color_table_row(160).as_str());
+    html_content.push_str(build_gray_color_table_row(192).as_str());
+    html_content.push_str(build_gray_color_table_row(224).as_str());
+    html_content.push_str(build_gray_color_table_row(255).as_str());
+    html_content.push_str("         </tbody>\n");
+    html_content.push_str("     </table>\n");
+    html_content.push_str(" </body>\n");
+    html_content.push_str("</html>\n");
+
+    return html_content;
+}
+
+fn build_hsl_examples_html() -> String {
+    let mut html_content = String::new();
+    html_content.push_str("<!DOCTYPE html>\n");
+    html_content.push_str("<html>\n");
+    html_content.push_str(" <head>\n");
+    html_content.push_str("     <title>hsl-examples</title>\n");
+    html_content.push_str("     <link rel=\"stylesheet\" href=\"index.css\">\n");
+    html_content.push_str(" </head>\n");
+    html_content.push_str(" <body>\n");
+    html_content.push_str("     <a href=\"index.html\">&lt; back</a>");
+    html_content.push_str("     <table class=\"center\">\n");
+    html_content.push_str("         <thead>\n");
+    html_content.push_str("             <tr>\n");
+    html_content.push_str("                 <th>value</th>\n");
+    html_content.push_str("                 <th>by rust Color::new_hsl(h, s, l)</th>\n");
+    html_content.push_str("                 <th>by rust Color::new_string(\"hsl(&lt;h&gt;, &lt;s&gt;, &lt;l&gt;)\")</th>\n");
+    html_content.push_str("             </tr>\n");
+    html_content.push_str("         </thead>\n");
+    html_content.push_str("         <tbody>\n");
+    for h in 0..36 {
+        html_content.push_str(build_hsl_color_table_row(h as f64 * 10.0, 1.0, 0.5).as_str());
+    }
+    for h in 0..6 {
+        html_content.push_str(build_hsl_color_table_row(h as f64 * 60.0, 0.5, 0.5).as_str());
+    }
+    html_content.push_str(build_hsl_color_table_row(0.0, 0.0, 0.5).as_str());
+    html_content.push_str(build_hsl_color_table_row(0.0, 1.0, 0.0).as_str());
+    for h in 0..6 {
+        html_content.push_str(build_hsl_color_table_row(h as f64 * 60.0, 1.0, 0.25).as_str());
+    }
+    for h in 0..6 {
+        html_content.push_str(build_hsl_color_table_row(h as f64 * 60.0, 1.0, 0.5).as_str());
+    }
+    for h in 0..6 {
+        html_content.push_str(build_hsl_color_table_row(h as f64 * 60.0, 1.0, 0.75).as_str());
+    }
+    html_content.push_str(build_hsl_color_table_row(0.0, 1.0, 1.0).as_str());
+    html_content.push_str("         </tbody>\n");
+    html_content.push_str("     </table>\n");
+    html_content.push_str(" </body>\n");
+    html_content.push_str("</html>\n");
+
+    return html_content;
+}
+
+fn build_hsv_examples_html() -> String {
+    let mut html_content = String::new();
+    html_content.push_str("<!DOCTYPE html>\n");
+    html_content.push_str("<html>\n");
+    html_content.push_str(" <head>\n");
+    html_content.push_str("     <title>hsv-examples</title>\n");
+    html_content.push_str("     <link rel=\"stylesheet\" href=\"index.css\">\n");
+    html_content.push_str(" </head>\n");
+    html_content.push_str(" <body>\n");
+    html_content.push_str("     <a href=\"index.html\">&lt; back</a>");
+    html_content.push_str("     <table class=\"center\">\n");
+    html_content.push_str("         <thead>\n");
+    html_content.push_str("             <tr>\n");
+    html_content.push_str("                 <th>value</th>\n");
+    html_content.push_str("                 <th>by rust Color::new_hsv(h, s, v)</th>\n");
+    html_content.push_str("                 <th>by rust Color::new_string(\"hsl(&lt;h&gt;, &lt;s&gt;, &lt;v&gt;)\")</th>\n");
+    html_content.push_str("             </tr>\n");
+    html_content.push_str("         </thead>\n");
+    html_content.push_str("         <tbody>\n");
+    for h in 0..36 {
+        html_content.push_str(build_hsv_color_table_row(h as f64 * 10.0, 1.0, 1.0).as_str());
+    }
+    for h in 0..6 {
+        html_content.push_str(build_hsv_color_table_row(h as f64 * 60.0, 0.5, 1.0).as_str());
+    }
+    html_content.push_str(build_hsv_color_table_row(0.0, 0.0, 0.5).as_str());
+    html_content.push_str(build_hsv_color_table_row(0.0, 1.0, 0.0).as_str());
+    for h in 0..6 {
+        html_content.push_str(build_hsv_color_table_row(h as f64 * 60.0, 1.0, 0.25).as_str());
+    }
+    for h in 0..6 {
+        html_content.push_str(build_hsv_color_table_row(h as f64 * 60.0, 1.0, 0.5).as_str());
+    }
+    for h in 0..6 {
+        html_content.push_str(build_hsv_color_table_row(h as f64 * 60.0, 1.0, 0.75).as_str());
+    }
+    html_content.push_str(build_hsv_color_table_row(0.0, 1.0, 1.0).as_str());
+    html_content.push_str("         </tbody>\n");
+    html_content.push_str("     </table>\n");
+    html_content.push_str(" </body>\n");
+    html_content.push_str("</html>\n");
+
+    return html_content;
+}
+
+fn build_hwb_examples_html() -> String {
+    let mut html_content = String::new();
+    html_content.push_str("<!DOCTYPE html>\n");
+    html_content.push_str("<html>\n");
+    html_content.push_str(" <head>\n");
+    html_content.push_str("     <title>hwb-examples</title>\n");
+    html_content.push_str("     <link rel=\"stylesheet\" href=\"index.css\">\n");
+    html_content.push_str(" </head>\n");
+    html_content.push_str(" <body>\n");
+    html_content.push_str("     <a href=\"index.html\">&lt; back</a>");
+    html_content.push_str("     <table class=\"center\">\n");
+    html_content.push_str("         <thead>\n");
+    html_content.push_str("             <tr>\n");
+    html_content.push_str("                 <th>value</th>\n");
+    html_content.push_str("                 <th>by rust Color::new_hwb(h, w, b)</th>\n");
+    html_content.push_str("                 <th>by rust Color::new_string(\"hwb(&lt;h&gt;, &lt;w&gt;, &lt;b&gt;)\")</th>\n");
+    html_content.push_str("             </tr>\n");
+    html_content.push_str("         </thead>\n");
+    html_content.push_str("         <tbody>\n");
+    for h in 0..36 {
+        html_content.push_str(build_hwb_color_table_row(h as f64 * 10.0, 0.0, 0.0).as_str());
+    }
+    html_content.push_str(build_hwb_color_table_row(0.0, 0.5, 0.5).as_str());
+    html_content.push_str(build_hwb_color_table_row(0.0, 0.0, 1.0).as_str());
+    html_content.push_str(build_hwb_color_table_row(0.0, 1.0, 0.0).as_str());
+    for h in 0..6 {
+        html_content.push_str(build_hwb_color_table_row(h as f64 * 60.0, 0.5, 0.0).as_str());
+    }
+    for h in 0..6 {
+        html_content.push_str(build_hwb_color_table_row(h as f64 * 60.0, 0.0, 0.5).as_str());
+    }
+    html_content.push_str("         </tbody>\n");
+    html_content.push_str("     </table>\n");
+    html_content.push_str(" </body>\n");
+    html_content.push_str("</html>\n");
+
+    return html_content;
 }

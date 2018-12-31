@@ -65,6 +65,11 @@ use self::regex::Regex;
 use std::f64::consts::PI;
 use std::str::FromStr;
 
+fn round_with_precision(number: f64, precision: u8) -> f64 {
+    let multiplier = 10_f64.powi(precision as i32);
+    (number * multiplier).round() / multiplier
+}
+
 pub struct Color {
 	pub red: u8,
 	pub green: u8,
@@ -775,9 +780,22 @@ impl Color {
 		}
 		
 		let black = 1.0 - rgb_max;
-		let cyan = ((1.0 - r - black) / (1.0 - black)).round();
-		let magenta = ((1.0 - g - black) / (1.0 - black)).round();
-		let yellow = ((1.0 - b - black) / (1.0 - black)).round();
+        let white = 1.0 - black;
+        let cyan = if white != 0.0 {
+            ((1.0 - r - black) / white).round()
+        } else {
+            0.0
+        };
+        let magenta = if white != 0.0 {
+            ((1.0 - g - black) / white).round()
+        } else {
+            0.0
+        };
+        let yellow = if white != 0.0 {
+            ((1.0 - b - black) / white).round()
+        } else {
+            0.0
+        };
 
 		(cyan, magenta, yellow, black)
 	}
@@ -835,8 +853,14 @@ impl Color {
 			s = c_delta / (1.0 - (2.0 * l - 1.0).abs());
 		}
 
-        // round with a precision of 2 decimals.
-        let alpha = (self.alpha as f64 / 255.0 * 100.0).round() / 100.0;
+        while h < 0.0 {
+            h+= 360.0;
+        }
+        while h > 360.0 {
+            h-= 360.0;
+        }
+
+        let alpha = round_with_precision(self.alpha as f64 / 255.0, 2);
 
 		(h, s, l, alpha)
 	}
@@ -866,8 +890,7 @@ impl Color {
 		let red = self.red as f64 / 255.0;
 		let green = self.green as f64 / 255.0;
 		let blue = self.blue as f64 / 255.0;
-        // round with a precision of 2 decimals.
-        let alpha = (self.alpha as f64 / 255.0 * 100.0).round() / 100.0;
+        let alpha = round_with_precision(self.alpha as f64 / 255.0, 2);
 
 		if red < min {
 			min = red;
@@ -895,21 +918,21 @@ impl Color {
 		let v = max;
 		let delta = max - min;
 		let s = delta / max;
-		let mut h = if red == max {
-			(green - blue) / delta
-		} else if green == max {
-			2.0 + (blue - red) / delta
-		} else {
-			4.0 + (red - green) / delta
-		};
-		h *= 60.0;
-		if h < 0.0 {
-			h += 360.0;
-		}
+        let mut h = 0.0;
+        if delta != 0.0 {
+            h = if red == max {
+                (green - blue) / delta
+            } else if green == max {
+                2.0 + (blue - red) / delta
+            } else {
+                4.0 + (red - green) / delta
+            };
 
-		if h == std::f64::NAN {
-			h = 0.0;
-		}
+            h *= 60.0;
+            if h < 0.0 {
+                h += 360.0;
+            }
+        }
 
         (h, s, v, alpha)
 	}
@@ -937,16 +960,16 @@ impl Color {
 		let g = self.green as f64 / 255.0;
 		let b = self.blue as f64 / 255.0;
 		
-		let white = if r < g && r < b {
+		let white = if r <= g && r <= b {
 			r
-		} else if g < r && g < b {
+		} else if g <= r && g <= b {
 			g
 		} else {
 			b
 		};
-		let value = if r > g && r > b {
+		let value = if r >= g && r >= b {
 			r
-		} else if g > r && g > b {
+		} else if g >= r && g >= b {
 			g
 		} else {
 			b
@@ -967,13 +990,16 @@ impl Color {
 			1.0
 		};
 		
-		let mut h = (i - f / (value - white)) * 60.0;
-		if h == 360.0 {
+        let mut h = if value - white != 0.0 {
+            (i - f / (value - white)) * 60.0
+        } else {
+            0.0
+        };
+        if h == 360.0 {
 			h = 0.0;
 		}
 
-        // round with a precision of 2 decimals.
-        let alpha = (self.alpha as f64 / 255.0 * 100.0).round() / 100.0;
+        let alpha = round_with_precision(self.alpha as f64 / 255.0, 2);
 
 		(h, white, black, alpha)
 	}
@@ -996,8 +1022,7 @@ impl Color {
     /// assert_eq!(0.5, transparent_green_rgba.3);
 	/// ```
     pub fn get_rgba(&self) -> (f64, f64, f64, f64) {
-        // round with a precision of 2 decimals.
-        let alpha = (self.alpha as f64 / 255.0 * 100.0).round() / 100.0;
+        let alpha = round_with_precision(self.alpha as f64 / 255.0, 2);
 
 		(self.red as f64 / 255.0, self.green as f64 / 255.0, self.blue as f64 / 255.0, alpha)
 	}
@@ -1361,12 +1386,33 @@ impl Color {
 	/// ```
     pub fn to_cmyk_string(&self) -> String {
 		let cmyk = self.get_cmyk();
-		let key_rounded = (cmyk.3 * 10000.0).round() / 100.0;
+		let key_rounded = round_with_precision(cmyk.3 * 100.0, 2);
 
 		let mut cmyk_string = String::from("cmyk(");
 		cmyk_string.push_str(format!("{}%, {}%, {}%, {}%", cmyk.0 * 100.0, cmyk.1 * 100.0, cmyk.2 * 100.0, key_rounded).as_str());
 		cmyk_string.push_str(")");
 		cmyk_string
+	}
+
+    /// Gets a formatted hex String of the color as used in css.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let red = Color::new_string("red").unwrap();
+	/// 
+	/// assert_eq!("gray(76)", red.to_gray_string());
+	/// ```
+	pub fn to_gray_string(&self) -> String {
+        let gray = self.grayscale();
+		let mut gray_string = format!("gray({}", gray.red);
+        if gray.alpha != 255 {
+			// round with a precision of 2 decimals.
+			gray_string.push_str(format!(", {}", gray.alpha).as_str());
+		}
+        gray_string.push_str(")");
+		gray_string
 	}
 
     /// Gets a formatted hex String of the color as used in css.
@@ -1406,18 +1452,19 @@ impl Color {
 	/// ```
     pub fn to_hsl_string(&self) -> String {
 		let hsla = self.get_hsla();
-		let s_rounded = (hsla.1 * 10000.0).round() / 100.0;
-		let l_rounded = (hsla.2 * 10000.0).round() / 100.0;
+        let h_rounded = round_with_precision(hsla.0, 2);
+		let s_rounded = round_with_precision(hsla.1 * 100.0, 2);
+		let l_rounded = round_with_precision(hsla.2 * 100.0, 2);
 
 		let mut hsl_string = String::from("hsl");
 		if self.alpha != 255 {
 			hsl_string.push_str("a");
 		}
 		hsl_string.push_str("(");
-		hsl_string.push_str(format!("{}, {}%, {}%", hsla.0, s_rounded, l_rounded).as_str());
+		hsl_string.push_str(format!("{}, {}%, {}%", h_rounded, s_rounded, l_rounded).as_str());
 		if self.alpha != 255 {
 			// round with a precision of 2 decimals.
-			hsl_string.push_str(format!(", {}", (hsla.3 * 100.0).round() / 100.0).as_str());
+			hsl_string.push_str(format!(", {}", round_with_precision(hsla.3, 2)).as_str());
 		}
 		hsl_string.push_str(")");
 		hsl_string
@@ -1437,16 +1484,18 @@ impl Color {
 	/// ```
     pub fn to_hsv_string(&self) -> String {
 		let hsva = self.get_hsva();
+        let h_rounded = round_with_precision(hsva.0, 2);
+        let s_rounded = round_with_precision(hsva.1 * 100.0, 2);
+        let v_rounded = round_with_precision(hsva.2 * 100.0, 2);
 
 		let mut hsv_string = String::from("hsv");
 		if hsva.3 != 1.0 {
 			hsv_string.push_str("a");
 		}
 		hsv_string.push_str("(");
-		hsv_string.push_str(format!("{}, {}%, {}%", hsva.0, hsva.1 * 100.0, hsva.2 * 100.0).as_str());
+		hsv_string.push_str(format!("{}, {}%, {}%", h_rounded, s_rounded, v_rounded).as_str());
 		if hsva.3 != 1.0 {
-			// round with a precision of 2 decimals.
-			hsv_string.push_str(format!(", {}", (hsva.3 * 100.0).round() / 100.0).as_str());
+			hsv_string.push_str(format!(", {}", round_with_precision(hsva.3, 2)).as_str());
 		}
 		hsv_string.push_str(")");
 		hsv_string
@@ -1466,16 +1515,19 @@ impl Color {
 	/// ```
     pub fn to_hwb_string(&self) -> String {
 		let hwba = self.get_hwba();
+        let h_rounded = hwba.0.round() as u16;
+        let w_rounded = round_with_precision(hwba.1 * 100.0, 2);
+        let b_rounded = round_with_precision(hwba.2 * 100.0, 2);
 
 		let mut hwb_string = String::from("hwb");
 		if self.alpha != 255 {
 			hwb_string.push_str("a");
 		}
 		hwb_string.push_str("(");
-		hwb_string.push_str(format!("{}, {}%, {}%", hwba.0.round() as u16, hwba.1, hwba.2).as_str());
+		hwb_string.push_str(format!("{}, {}%, {}%", h_rounded, w_rounded, b_rounded).as_str());
 		if self.alpha != 255 {
 			// round with a precision of 2 decimals.
-			hwb_string.push_str(format!(", {}", (hwba.3 * 100.0).round() / 100.0).as_str());
+			hwb_string.push_str(format!(", {}", round_with_precision(hwba.3, 2)).as_str());
 		}
 		hwb_string.push_str(")");
 		hwb_string
@@ -3127,6 +3179,13 @@ mod tests {
 
 		let grayscaled_red_color = red_color.grayscale();
         assert_eq!(grayscaled_red_color.to_cmyk_string(), "cmyk(0%, 0%, 0%, 70.2%)");
+    }
+
+    #[test]
+    fn color_to_gray_string()
+    {
+        let red_color = Color::new_string("red").unwrap();
+        assert_eq!(red_color.to_gray_string(), "gray(76)");
     }
 
     #[test]

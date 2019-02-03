@@ -1,3 +1,4 @@
+output
 html_visualizer/output
 **/target
 **/*.rs.bk

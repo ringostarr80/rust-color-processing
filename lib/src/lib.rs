@@ -70,6 +70,7 @@ fn round_with_precision(number: f64, precision: u8) -> f64 {
     (number * multiplier).round() / multiplier
 }
 
+#[derive(Copy, Clone)]
 pub struct Color {
 	pub red: u8,
 	pub green: u8,
@@ -78,6 +79,20 @@ pub struct Color {
 }
 
 impl Color {
+    const LAB_CONSTANT_T0: f64 = 0.137931034; // 4 / 29
+    const LAB_CONSTANT_T1: f64 = 0.206896552; // 6 / 29
+    const LAB_CONSTANT_T2: f64 = 0.12841855;  // 3 * t1 * t1
+    const LAB_CONSTANT_T3: f64 = 0.008856452; // t1 * t1 * t1
+    // Corresponds roughly to RGB brighter/darker
+    //const LAB_CONSTANT_KN: f64 = 18.0;
+    // D65 standard referent
+    const LAB_CONSTANT_XN: f64 = 0.950470;
+    const LAB_CONSTANT_YN: f64 = 1.0;
+    const LAB_CONSTANT_ZN: f64 = 1.088830;
+
+    const RAD2DEG: f64 = 180.0 / PI;
+    const DEG2RAD: f64 = PI / 180.0;
+
 	/// Gets a new Color struct, that represents the "black"-color.
 	/// 
 	/// # Example
@@ -321,9 +336,7 @@ impl Color {
 	/// assert_eq!(255, red.alpha);
 	/// ```
 	pub fn new_hsl(hue: f64, saturation: f64, lightness: f64) -> Color {
-        let rgb = Color::get_rgb_from_hsl(hue, saturation, lightness);
-
-        Color::new_rgb(rgb.0, rgb.1, rgb.2)
+        Color::new_hsla(hue, saturation, lightness, 1.0)
 	}
 
     /// Gets a new Color struct, that represents a color with the hue, saturation, lightness and alpha values.
@@ -469,6 +482,190 @@ impl Color {
 
         Color::new_rgba(rgb.0, rgb.1, rgb.2, a)
 	}
+
+    /// Gets a new Color struct, that represents a color with the lightness, a and b values.
+    /// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let black_lab = Color::new_lab(0.0, 0.0, 0.0);
+    /// assert_eq!(black_lab.to_hex_string(), "#000000");
+    /// 
+    /// let white_lab = Color::new_lab(100.0, 0.0, 0.0);
+    /// assert_eq!(white_lab.to_hex_string(), "#FFFFFF");
+    /// 
+    /// let gray_lab = Color::new_lab(53.59, 0.0, 0.0);
+    /// assert_eq!(gray_lab.to_hex_string(), "#808080");
+    /// 
+    /// let red_lab = Color::new_lab(53.24, 80.09, 67.2);
+    /// assert_eq!(red_lab.to_hex_string(), "#FF0000");
+    /// 
+    /// let yellow_lab = Color::new_lab(97.14, -21.55, 94.48);
+    /// assert_eq!(yellow_lab.to_hex_string(), "#FFFF00");
+    /// 
+    /// let green_lab = Color::new_lab(87.73, -86.18, 83.18);
+    /// assert_eq!(green_lab.to_hex_string(), "#00FF00");
+    /// 
+    /// let cyan_lab = Color::new_lab(91.11, -48.09, -14.13);
+    /// assert_eq!(cyan_lab.to_hex_string(), "#00FFFF");
+    /// 
+    /// let blue_lab = Color::new_lab(32.3, 79.19, -107.86);
+    /// assert_eq!(blue_lab.to_hex_string(), "#0000FF");
+	/// ```
+    pub fn new_lab(l: f64, a: f64, b: f64) -> Color {
+        Color::new_laba(l, a, b, 1.0)
+    }
+
+    /// Gets a new Color struct, that represents a color with the lightness, a, b and alpha values.
+    /// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let black_lab = Color::new_laba(0.0, 0.0, 0.0, 1.0);
+    /// assert_eq!(black_lab.to_hex_string(), "#000000");
+    /// 
+    /// let white_lab = Color::new_laba(100.0, 0.0, 0.0, 0.5);
+    /// assert_eq!(white_lab.to_hex_string(), "#FFFFFF80");
+    /// 
+    /// let gray_lab = Color::new_laba(53.59, 0.0, 0.0, 0.5);
+    /// assert_eq!(gray_lab.to_hex_string(), "#80808080");
+    /// 
+    /// let red_lab = Color::new_laba(53.24, 80.09, 67.2, 1.0);
+    /// assert_eq!(red_lab.to_hex_string(), "#FF0000");
+    /// 
+    /// let yellow_lab = Color::new_laba(97.14, -21.55, 94.48, 0.0);
+    /// assert_eq!(yellow_lab.to_hex_string(), "#FFFF0000");
+    /// 
+    /// let green_lab = Color::new_laba(87.73, -86.18, 83.18, 1.0);
+    /// assert_eq!(green_lab.to_hex_string(), "#00FF00");
+    /// 
+    /// let cyan_lab = Color::new_laba(91.11, -48.09, -14.13, 1.0);
+    /// assert_eq!(cyan_lab.to_hex_string(), "#00FFFF");
+    /// 
+    /// let blue_lab = Color::new_laba(32.3, 79.19, -107.86, 1.0);
+    /// assert_eq!(blue_lab.to_hex_string(), "#0000FF");
+	/// ```
+    pub fn new_laba(l: f64, a: f64, b: f64, alpha: f64) -> Color {
+        let alpha = if alpha < 0.0 {
+            0
+        } else if alpha > 1.0 {
+            255
+        } else {
+            (alpha * 255.0).round() as u8
+        };
+
+        let rgb = Color::lab_2_rgb(l, a, b);
+
+        Color::new_rgba(rgb.0.round() as u8, rgb.1.round() as u8, rgb.2.round() as u8, alpha)
+    }
+
+    /// Gets a new Color struct, that represents a color with the lightness, chroma and hue values.
+    /// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+    ///
+    /// let black_lch = Color::new_lch(0.0, 0.0, std::f64::NAN);
+    /// assert_eq!(black_lch.to_rgb_string(), "rgb(0, 0, 0)");
+    /// 
+    /// let white_lch = Color::new_lch(100.0, 0.0, std::f64::NAN);
+    /// assert_eq!(white_lch.to_rgb_string(), "rgb(255, 255, 255)");
+    /// 
+    /// let gray_lch = Color::new_lch(53.59, 0.0, std::f64::NAN);
+    /// assert_eq!(gray_lch.to_rgb_string(), "rgb(128, 128, 128)");
+    /// 
+    /// let red_lch = Color::new_lch(53.24, 104.55, 40.0);
+    /// assert_eq!(red_lch.to_rgb_string(), "rgb(255, 0, 0)");
+    /// 
+    /// let yellow_lch = Color::new_lch(97.14, 96.91, 102.85);
+    /// assert_eq!(yellow_lch.to_rgb_string(), "rgb(255, 255, 0)");
+    /// 
+    /// let green_lch = Color::new_lch(87.73, 119.78, 136.02);
+    /// assert_eq!(green_lch.to_rgb_string(), "rgb(0, 255, 0)");
+    /// 
+    /// let cyan_lch = Color::new_lch(91.11, 50.12, 196.38);
+    /// assert_eq!(cyan_lch.to_rgb_string(), "rgb(0, 255, 255)");
+    /// 
+    /// let blue_lch = Color::new_lch(32.3, 133.81, 306.28);
+    /// assert_eq!(blue_lch.to_rgb_string(), "rgb(0, 0, 255)");
+    /// 
+    /// let magenta_lch = Color::new_lch(60.32, 115.54, 328.23);
+    /// assert_eq!(magenta_lch.to_rgb_string(), "rgb(255, 0, 255)");
+    /// ```
+    pub fn new_lch(lightness: f64, chroma: f64, hue: f64) -> Color {
+        Color::new_lcha(lightness, chroma, hue, 1.0)
+    }
+
+    /// Gets a new Color struct, that represents a color with the lightness, chroma, hue and alpha values.
+    /// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+    ///
+    /// let black_lch = Color::new_lcha(0.0, 0.0, std::f64::NAN, 1.0);
+    /// assert_eq!(black_lch.to_rgb_string(), "rgb(0, 0, 0)");
+    /// 
+    /// let white_lch = Color::new_lcha(100.0, 0.0, std::f64::NAN, 0.0);
+    /// assert_eq!(white_lch.to_rgb_string(), "rgba(255, 255, 255, 0)");
+    /// 
+    /// let gray_lch = Color::new_lcha(53.59, 0.0, std::f64::NAN, 0.5);
+    /// assert_eq!(gray_lch.to_rgb_string(), "rgba(128, 128, 128, 0.5)");
+    /// 
+    /// let red_lch = Color::new_lcha(53.24, 104.55, 40.0, 0.5);
+    /// assert_eq!(red_lch.to_rgb_string(), "rgba(255, 0, 0, 0.5)");
+    /// 
+    /// let yellow_lch = Color::new_lcha(97.14, 96.91, 102.8, 1.0);
+    /// assert_eq!(yellow_lch.to_rgb_string(), "rgb(255, 255, 0)");
+    /// 
+    /// let green_lch = Color::new_lcha(87.73, 119.78, 136.02, 1.0);
+    /// assert_eq!(green_lch.to_rgb_string(), "rgb(0, 255, 0)");
+    /// 
+    /// let cyan_lch = Color::new_lcha(91.11, 50.12, 196.38, 1.0);
+    /// assert_eq!(cyan_lch.to_rgb_string(), "rgb(0, 255, 255)");
+    /// 
+    /// let blue_lch = Color::new_lcha(32.3, 133.81, 306.28, 1.0);
+    /// assert_eq!(blue_lch.to_rgb_string(), "rgb(0, 0, 255)");
+    /// 
+    /// let magenta_lch = Color::new_lcha(60.32, 115.54, 328.23, 1.0);
+    /// assert_eq!(magenta_lch.to_rgb_string(), "rgb(255, 0, 255)");
+    /// ```
+    pub fn new_lcha(lightness: f64, chroma: f64, hue: f64, alpha: f64) -> Color {
+        let a = if alpha < 0.0 {
+            0
+        } else if alpha > 1.0 {
+            255
+        } else {
+            (alpha * 255.0).round() as u8
+        };
+
+        let lab = Color::lch_2_lab(lightness, chroma, hue);
+        let rgb = Color::lab_2_rgb(lab.0, lab.1, lab.2);
+        let r = if rgb.0 < 0.0 {
+            0
+        } else if rgb.0 > 255.0 {
+            255
+        } else {
+            rgb.0.round() as u8
+        };
+        let g = if rgb.1 < 0.0 {
+            0
+        } else if rgb.1 > 255.0 {
+            255
+        } else {
+            rgb.1.round() as u8
+        };
+        let b = if rgb.2 < 0.0 {
+            0
+        } else if rgb.2 > 255.0 {
+            255
+        } else {
+            rgb.2.round() as u8
+        };
+
+        Color::new_rgba(r, g, b, a)
+    }
 
     /// Gets a new Color struct, that represents a color with the given red, green and blue values.
 	/// 
@@ -1027,66 +1224,77 @@ impl Color {
 		(self.red as f64 / 255.0, self.green as f64 / 255.0, self.blue as f64 / 255.0, alpha)
 	}
 
-	pub fn get_lab(&self) -> (f64, f64, f64) {
-		let mut red = self.red as f64 / 255.0;
-		let mut green = self.green as f64 / 255.0;
-		let mut blue = self.blue as f64 / 255.0;
+    fn get_xyz(&self) -> (f64, f64, f64) {
+        let r = Color::rgb_xyz(self.red);
+        let g = Color::rgb_xyz(self.green);
+        let b = Color::rgb_xyz(self.blue);
+        let x = Color::xyz_lab((0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / Color::LAB_CONSTANT_XN);
+        let y = Color::xyz_lab((0.2126729 * r + 0.7151522 * g + 0.0721750 * b) / Color::LAB_CONSTANT_YN);
+        let z = Color::xyz_lab((0.0193339 * r + 0.1191920 * g + 0.9503041 * b) / Color::LAB_CONSTANT_ZN);
 
-		red = if red > 0.04045 {
-			((red + 0.055) / 1.055).powf(2.4)
-		} else {
-			(red / 12.92)
-		};
-		green = if green > 0.04045 {
-			((green + 0.055) / 1.055).powf(2.4)
-		} else {
-			(green / 12.92)
-		};
-		blue = if blue > 0.04045 {
-			((blue + 0.055) / 1.055).powf(2.4)
-		} else {
-			(blue / 12.92)
-		};
+        (x, y, z)
+    }
 
-		let mut x = (red * 0.4124) + (green * 0.3576) + (blue * 0.1805);
-		let mut y = (red * 0.2126) + (green * 0.7152) + (blue * 0.0722);
-		let mut z = (red * 0.0193) + (green * 0.1192) + (blue * 0.9505);
+    /// Gets a laba tuple of the color.
+	/// 
+	/// This method returns a tuple of lightness, a, b and alpha of the color.  
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
+    /// let transparent_green_laba = transparent_green.get_laba();
+	/// 
+	/// assert_eq!(87.73, transparent_green_laba.0);
+    /// assert_eq!(-86.18, transparent_green_laba.1);
+    /// assert_eq!(83.18, transparent_green_laba.2);
+    /// assert_eq!(0.5, transparent_green_laba.3);
+	/// ```
+	pub fn get_laba(&self) -> (f64, f64, f64, f64) {
+		let xyz = self.get_xyz();
+        let mut l = 116.0 * xyz.1 - 16.0;
+        if l < 0.0 {
+            l = 0.0;
+        }
 
-		x*= 100.0;
-		y*= 100.0;
-		z*= 100.0;
-
-		x/= 95.047;
-		y/= 100.0;
-		z/= 108.883;
-
-		x = if x > 0.008856 {
-			x.powf(1.0 / 3.0)
-		} else {
-			(7.787 * x) + (16.0 / 116.0)
-		};
-		y = if y > 0.008856 {
-			y.powf(1.0 / 3.0)
-		} else {
-			(7.787 * y) + (16.0 / 116.0)
-		};
-		z = if z > 0.008856 {
-			z.powf(1.0 / 3.0)
-		} else {
-			(7.787 * z) + (16.0 / 116.0)
-		};
-
-		((116.0 * y) - 16.0, 500.0 * (x - y), 200.0 * (y - z))
+        l = round_with_precision(l, 2);
+        let a = round_with_precision(500.0 * (xyz.0 - xyz.1), 2);
+        let b = round_with_precision(200.0 * (xyz.1 - xyz.2), 2);
+        let alpha = round_with_precision(self.alpha as f64 / 255.0, 2);
+        (l, a, b, alpha)
 	}
 
-	pub fn get_lch(&self) -> (f64, f64, f64) {
-		let lab = self.get_lab();
+    /// Gets a laba tuple of the color.
+	/// 
+	/// This method returns a tuple of lightness, chroma, hue and alpha of the color.  
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let transparent_green = Color::new_string("rgba(0, 255, 0, 0.5)").unwrap();
+    /// let transparent_green_lcha = transparent_green.get_lcha();
+	/// 
+	/// assert_eq!(87.73, transparent_green_lcha.0);
+    /// assert_eq!(119.77, transparent_green_lcha.1);
+    /// assert_eq!(136.01, transparent_green_lcha.2);
+    /// assert_eq!(0.5, transparent_green_lcha.3);
+	/// ```
+    pub fn get_lcha(&self) -> (f64, f64, f64, f64) {
+        let lab = self.get_laba();
+        let mut c = (lab.1 * lab.1 + lab.2 * lab.2).sqrt();
+        let mut h = (lab.2.atan2(lab.1) * Color::RAD2DEG + 360.0) % 360.0;
+        if (c * 10000.0).round() == 0.0 {
+            h = std::f64::NAN; // NaN
+        }
 
-		let c = (lab.1 * lab.1 + lab.2 * lab.2).sqrt();
-		let h = (lab.2.atan2(lab.1) * 180.0 / PI + 360.0).round() % 360.0;
-
-		(lab.0, c, h)
-	}
+        let l = round_with_precision(lab.0, 2);
+        c = round_with_precision(c, 2);
+        h = round_with_precision(h, 2);
+        let alpha = round_with_precision(self.alpha as f64 / 255.0, 2);
+        (l, c, h, alpha)
+    }
 
 	fn get_rgb_from_cmyk(mut c: f64, mut m: f64, mut y: f64, mut k: f64) -> (u8, u8, u8) {
         if c < 0.0 {
@@ -1227,6 +1435,53 @@ impl Color {
 		(rgb.0, rgb.1, rgb.2)
 	}
 
+    fn lch_2_lab(l: f64, c: f64, mut h: f64) -> (f64, f64, f64) {
+        if h.is_nan() {
+            h = 0.0;
+        }
+        h = h * Color::DEG2RAD;
+        (l, h.cos() * c, h.sin() * c)
+    }
+
+    fn lab_2_rgb(l: f64, a: f64, b: f64) -> (f64, f64, f64) {
+        let mut y = (l + 16.0) / 116.0;
+        let mut x = if a.is_nan() {
+            y
+        } else {
+            y + a / 500.0
+        };
+        let mut z = if b.is_nan() {
+            y
+        } else {
+            y - b / 200.0
+        };
+
+        y = Color::LAB_CONSTANT_YN * Color::lab_xyz(y);
+        x = Color::LAB_CONSTANT_XN * Color::lab_xyz(x);
+        z = Color::LAB_CONSTANT_ZN * Color::lab_xyz(z);
+
+        let r = Color::xyz_rgb(3.2404542 * x - 1.5371385 * y - 0.4985314 * z);  // D65 -> sRGB
+        let g = Color::xyz_rgb(-0.9692660 * x + 1.8760108 * y + 0.0415560 * z);
+        let b = Color::xyz_rgb(0.0556434 * x - 0.2040259 * y + 1.0572252 * z);
+
+        (r, g, b)
+    }
+
+    /// Colorizes this color with another color.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+    /// let white = Color::new_string("white").unwrap();
+    /// let black = Color::new_string("black").unwrap();
+	/// let red = Color::new_string("red").unwrap();
+    /// let colorized_red_over_white = white.colorize(red);
+    /// let colorized_red_over_black = black.colorize(red);
+	/// 
+	/// assert_eq!("#FF0000", colorized_red_over_white.to_hex_string());
+    /// assert_eq!("#000000", colorized_red_over_black.to_hex_string());
+	/// ```
 	pub fn colorize(&self, color: Color) -> Color {
 		Color {
 			alpha: (self.alpha as u16 * color.alpha as u16 / 255) as u8,
@@ -1236,6 +1491,20 @@ impl Color {
 		}
 	}
 
+    /// Colorizes this color with another color.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+    /// let white = Color::new_string("white").unwrap();
+    /// let black = Color::new_string("black").unwrap();
+    /// let colorized_red_over_white = white.colorize_string("red").unwrap();
+    /// let colorized_red_over_black = black.colorize_string("red").unwrap();
+	/// 
+	/// assert_eq!("#FF0000", colorized_red_over_white.to_hex_string());
+    /// assert_eq!("#000000", colorized_red_over_black.to_hex_string());
+	/// ```
 	pub fn colorize_string(&self, color: &str) -> Result<Color, &str> {
 		match Color::new_string(color) {
 			Some(color) => Ok(self.colorize(color)),
@@ -1369,9 +1638,21 @@ impl Color {
 		Color { red: 255 - self.red, green: 255 - self.green, blue: 255 - self.blue, alpha: self.alpha }
 	}
 
+    /// Gets the inverted luminescenced color of a color.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let dark_green = Color::new_hsla(120.0, 1.0, 0.3, 1.0);
+    /// let light_green = dark_green.invert_luminescence();
+	/// 
+	/// assert_eq!("#009900", dark_green.to_hex_string());
+    /// assert_eq!("#66FF66", light_green.to_hex_string());
+	/// ```
 	pub fn invert_luminescence(&self) -> Color {
 		let hsla = self.get_hsla();
-		Color::new_hsl(hsla.0, hsla.1, 1.0 - hsla.2)
+		Color::new_hsla(hsla.0, hsla.1, 1.0 - hsla.2, hsla.3)
 	}
 
     /// Gets a formatted cmyk String of the color as used in css.
@@ -1561,6 +1842,19 @@ impl Color {
 		rgb
 	}
 
+    /// Gets an interpolated Color-struct from the current to the final color by an interpolation factor.
+    /// The interpolation is made by the rgb values.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let white = Color::new_string("white").unwrap();
+    /// let black = Color::new_string("black").unwrap();
+    /// let gray = white.interpolate(black, 0.5);
+	/// 
+	/// assert_eq!("rgb(128, 128, 128)", gray.to_rgb_string());
+	/// ```
 	pub fn interpolate(&self, color: Color, interpolation: f64) -> Color {
         let i = if interpolation < 0.0 {
             0.0
@@ -1570,37 +1864,189 @@ impl Color {
             interpolation
         };
 
-		Color {
-			red: (self.red as f64 + (color.red - self.red) as f64 * i).round() as u8,
-			green: (self.green as f64 + (color.green - self.green) as f64 * i).round() as u8,
-			blue: (self.blue as f64 + (color.blue - self.blue) as f64 * i).round() as u8,
-            alpha: (self.alpha as f64 + (color.alpha - self.alpha) as f64 * i).round() as u8
+        Color {
+			red: (self.red as f64 + (color.red as i16 - self.red as i16) as f64 * i).round() as u8,
+			green: (self.green as f64 + (color.green as i16 - self.green as i16) as f64 * i).round() as u8,
+			blue: (self.blue as f64 + (color.blue as i16 - self.blue as i16) as f64 * i).round() as u8,
+            alpha: (self.alpha as f64 + (color.alpha as i16 - self.alpha as i16) as f64 * i).round() as u8
 		}
 	}
 
-    pub fn interpolate_hsv(&self, color: Color, mut interpolation: f64) -> Color {
-        if interpolation < 0.0 {
-            interpolation = 0.0;
+    /// Gets an interpolated Color-struct from the current to the final color by an interpolation factor.
+    /// The interpolation is made by the hsv values.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let white = Color::new_string("white").unwrap();
+    /// let black = Color::new_string("black").unwrap();
+    /// let gray = white.interpolate_hsv(black, 0.5);
+	/// 
+	/// assert_eq!("rgb(128, 128, 128)", gray.to_rgb_string());
+	/// ```
+    pub fn interpolate_hsv(&self, color: Color, interpolation: f64) -> Color {
+        let i = if interpolation < 0.0 {
+            0.0
         } else if interpolation > 1.0 {
-            interpolation = 1.0;
-        }
+            1.0
+        } else {
+            interpolation
+        };
 
 		let hsva = self.get_hsva();
-		let first_h = hsva.0 / 255.0;
+		let first_h = hsva.0;
 		let first_s = hsva.1;
 		let first_v = hsva.2;
 
 		let second_hsva = color.get_hsva();
-		let second_h = second_hsva.0 / 255.0;
+		let second_h = second_hsva.0;
 		let second_s = second_hsva.1;
 		let second_v = second_hsva.2;
 
-		let new_h = first_h + (second_h - first_h) * interpolation;
-		let new_s = first_s + (second_s - first_s) * interpolation;
-		let new_v = first_v + (second_v - first_v) * interpolation;
+		let new_h = first_h + (second_h - first_h) * i;
+		let new_s = first_s + (second_s - first_s) * i;
+		let new_v = first_v + (second_v - first_v) * i;
+        let new_a = self.alpha as f64 + (color.alpha as i16 - self.alpha as i16) as f64 * i / 255.0;
 
-		Color::new_hsv(new_h * 255.0, new_s, new_v)
+		Color::new_hsva(new_h, new_s, new_v, new_a)
 	}
+
+    /// Gets an interpolated Color-struct from the current to the final color by an interpolation factor.
+    /// The interpolation is made by the hsl values.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let white = Color::new_string("white").unwrap();
+    /// let black = Color::new_string("black").unwrap();
+    /// let gray = white.interpolate_hsl(black, 0.5);
+	/// 
+	/// assert_eq!("rgb(128, 128, 128)", gray.to_rgb_string());
+	/// ```
+    pub fn interpolate_hsl(&self, color: Color, interpolation: f64) -> Color {
+        let i = if interpolation < 0.0 {
+            0.0
+        } else if interpolation > 1.0 {
+            1.0
+        } else {
+            interpolation
+        };
+
+		let hsla = self.get_hsla();
+		let first_h = hsla.0;
+		let first_s = hsla.1;
+		let first_l = hsla.2;
+
+		let second_hsla = color.get_hsla();
+		let second_h = second_hsla.0;
+		let second_s = second_hsla.1;
+		let second_l = second_hsla.2;
+
+		let new_h = first_h + (second_h - first_h) * i;
+		let new_s = first_s + (second_s - first_s) * i;
+		let new_l = first_l + (second_l - first_l) * i;
+        let new_a = self.alpha as f64 + (color.alpha as i16 - self.alpha as i16) as f64 * i / 255.0;
+
+		Color::new_hsla(new_h, new_s, new_l, new_a)
+	}
+
+    /// Gets an interpolated Color-struct from the current to the final color by an interpolation factor.
+    /// The interpolation is made by the hwb values.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let white = Color::new_string("white").unwrap();
+    /// let black = Color::new_string("black").unwrap();
+    /// let gray = white.interpolate_hwb(black, 0.5);
+	/// 
+	/// assert_eq!("rgb(128, 128, 128)", gray.to_rgb_string());
+	/// ```
+    pub fn interpolate_hwb(&self, color: Color, interpolation: f64) -> Color {
+        let i = if interpolation < 0.0 {
+            0.0
+        } else if interpolation > 1.0 {
+            1.0
+        } else {
+            interpolation
+        };
+
+		let hwba = self.get_hwba();
+		let first_h = hwba.0;
+		let first_w = hwba.1;
+		let first_b = hwba.2;
+
+		let second_hwba = color.get_hwba();
+		let second_h = second_hwba.0;
+		let second_w = second_hwba.1;
+		let second_b = second_hwba.2;
+
+		let new_h = first_h + (second_h - first_h) * interpolation;
+		let new_s = first_w + (second_w - first_w) * interpolation;
+		let new_l = first_b + (second_b - first_b) * interpolation;
+        let new_a = self.alpha as f64 + (color.alpha as i16 - self.alpha as i16) as f64 * i / 255.0;
+
+		Color::new_hwba(new_h, new_s, new_l, new_a)
+	}
+
+    /// Gets an interpolated Color-struct from the current to the final color by an interpolation factor.
+    /// The interpolation is made by the lch values.
+	/// 
+	/// # Example
+	/// ```
+	/// use color_processing::Color;
+	/// 
+	/// let white = Color::new_string("white").unwrap();
+    /// let black = Color::new_string("black").unwrap();
+    /// let gray = white.interpolate_lch(black, 0.5);
+	/// 
+	/// assert_eq!("rgb(119, 119, 119)", gray.to_rgb_string());
+	/// ```
+    pub fn interpolate_lch(&self, color: Color, interpolation: f64) -> Color {
+        let i = if interpolation < 0.0 {
+            0.0
+        } else if interpolation > 1.0 {
+            1.0
+        } else {
+            interpolation
+        };
+
+        let lch = self.get_lcha();
+        let first_l = lch.0;
+		let first_c = lch.1;
+		let first_h = lch.2;
+
+		let second_lch = color.get_lcha();
+		let second_l = second_lch.0;
+		let second_c = second_lch.1;
+		let second_h = second_lch.2;
+
+        let new_h = if !first_h.is_nan() && !second_h.is_nan() {
+            let dh = if second_h > first_h && second_h - first_h > 180.0 {
+                second_h - (first_h + 360.0)
+            } else if second_h < first_h && first_h - second_h > 180.0 {
+                second_h + 360.0 - first_h
+            } else {
+                second_h - first_h
+            };
+            first_h + i * dh
+        } else if !first_h.is_nan() {
+            first_h
+        } else if !second_h.is_nan() {
+            second_h
+        } else {
+            std::f64::NAN
+        };
+
+		let new_l = first_l + (second_l - first_l) * i;
+		let new_c = first_c + (second_c - first_c) * i;
+        let new_a = self.alpha as f64 + (color.alpha as i16 - self.alpha as i16) as f64 * i / 255.0;
+
+        Color::new_lcha(new_l, new_c, new_h, new_a)
+    }
 
 	fn try_parse_hex(string: &str) -> Option<Color> {
 		lazy_static! {
@@ -2110,6 +2556,39 @@ impl Color {
 			_ => None
 		}
 	}
+
+    fn rgb_xyz(val: u8) -> f64 {
+        let val = val as f64 / 255.0;
+        if val <= 0.04045 {
+            return val as f64 / 12.92;
+        }
+
+        ((val as f64 + 0.055) / 1.055).powf(2.4)
+    }
+
+    fn xyz_rgb(r: f64) -> f64 {
+        if r <= 0.00304 {
+            255.0 * (12.92 * r)
+        } else {
+            255.0 * (1.055 * r.powf(1.0 / 2.4) - 0.055)
+        }
+    }
+
+    fn lab_xyz(t: f64) -> f64 {
+        if t > Color::LAB_CONSTANT_T1 {
+            t * t * t
+        } else {
+            Color::LAB_CONSTANT_T2 * (t - Color::LAB_CONSTANT_T0)
+        }
+    }
+
+    fn xyz_lab(t: f64) -> f64 {
+        if t > Color::LAB_CONSTANT_T3 {
+            return t.powf(1.0 / 3.0);
+        }
+
+        t / Color::LAB_CONSTANT_T2 + Color::LAB_CONSTANT_T0
+    }
 }
 
 impl FromStr for Color {
@@ -2290,7 +2769,7 @@ pub enum KnownColors {
 
 #[cfg(test)]
 mod tests {
-    use {Color, KnownColors};
+    use super::{Color, KnownColors};
 
     #[test]
     fn color_new() {
@@ -3446,5 +3925,281 @@ mod tests {
         let color = Color::new_string("#FF7300").unwrap();
         let inverted_color = color.invert_luminescence();
         assert_eq!(inverted_color.to_hex_string(), "#FF7300");
+    }
+
+    #[test]
+    fn color_rgb_2_lab() {
+        let black = Color::new_string("black").unwrap();
+        let black_lab = black.get_laba();
+        assert_eq!(black_lab.0, 0.0);
+        assert_eq!(black_lab.1, 0.0);
+        assert_eq!(black_lab.2, 0.0);
+
+        let white = Color::new_string("white").unwrap();
+        let white_lab = white.get_laba();
+        assert_eq!(white_lab.0, 100.0);
+        assert_eq!(white_lab.1, 0.0);
+        assert_eq!(white_lab.2, 0.0);
+
+        let gray = Color::new_string("gray").unwrap();
+        let gray_lab = gray.get_laba();
+        assert_eq!(gray_lab.0, 53.59);
+        assert_eq!(gray_lab.1, 0.0);
+        assert_eq!(gray_lab.2, 0.0);
+
+        let red = Color::new_string("red").unwrap();
+        let red_lab = red.get_laba();
+        assert_eq!(red_lab.0, 53.24);
+        assert_eq!(red_lab.1, 80.09);
+        assert_eq!(red_lab.2, 67.2);
+
+        let yellow = Color::new_string("yellow").unwrap();
+        let yellow_lab = yellow.get_laba();
+        assert_eq!(yellow_lab.0, 97.14);
+        assert_eq!(yellow_lab.1, -21.55);
+        assert_eq!(yellow_lab.2, 94.48);
+
+        let green = Color::new_string("rgb(0, 255, 0)").unwrap();
+        let green_lab = green.get_laba();
+        assert_eq!(green_lab.0, 87.73);
+        assert_eq!(green_lab.1, -86.18);
+        assert_eq!(green_lab.2, 83.18);
+
+        let cyan = Color::new_string("cyan").unwrap();
+        let cyan_lab = cyan.get_laba();
+        assert_eq!(cyan_lab.0, 91.11);
+        assert_eq!(cyan_lab.1, -48.09);
+        assert_eq!(cyan_lab.2, -14.13);
+
+        let blue = Color::new_string("blue").unwrap();
+        let blue_lab = blue.get_laba();
+        assert_eq!(blue_lab.0, 32.3);
+        assert_eq!(blue_lab.1, 79.19);
+        assert_eq!(blue_lab.2, -107.86);
+
+        let magenta = Color::new_string("magenta").unwrap();
+        let magenta_lab = magenta.get_laba();
+        assert_eq!(magenta_lab.0, 60.32);
+        assert_eq!(magenta_lab.1, 98.23);
+        assert_eq!(magenta_lab.2, -60.82);
+    }
+
+    #[test]
+    fn color_rgb_2_lch() {
+        let black = Color::new_string("black").unwrap();
+        let black_lch = black.get_lcha();
+        assert_eq!(black_lch.0, 0.0);
+        assert_eq!(black_lch.1, 0.0);
+        assert_eq!(black_lch.2.is_nan(), true);
+
+        let white = Color::new_string("white").unwrap();
+        let white_lch = white.get_lcha();
+        assert_eq!(white_lch.0, 100.0);
+        assert_eq!(white_lch.1, 0.0);
+        assert_eq!(white_lch.2.is_nan(), true);
+
+        let gray = Color::new_string("gray").unwrap();
+        let gray_lch = gray.get_lcha();
+        assert_eq!(gray_lch.0, 53.59);
+        assert_eq!(gray_lch.1, 0.0);
+        assert_eq!(gray_lch.2.is_nan(), true);
+
+        let red = Color::new_string("red").unwrap();
+        let red_lch = red.get_lcha();
+        assert_eq!(red_lch.0, 53.24);
+        assert_eq!(red_lch.1, 104.55);
+        assert_eq!(red_lch.2, 40.0);
+
+        let yellow = Color::new_string("yellow").unwrap();
+        let yellow_lch = yellow.get_lcha();
+        assert_eq!(yellow_lch.0, 97.14);
+        assert_eq!(yellow_lch.1, 96.91);
+        assert_eq!(yellow_lch.2, 102.85);
+
+        let green = Color::new_string("rgb(0, 255, 0)").unwrap();
+        let green_lch = green.get_lcha();
+        assert_eq!(green_lch.0, 87.73);
+        assert_eq!(green_lch.1, 119.77);
+        assert_eq!(green_lch.2, 136.01);
+
+        let cyan = Color::new_string("cyan").unwrap();
+        let cyan_lch = cyan.get_lcha();
+        assert_eq!(cyan_lch.0, 91.11);
+        assert_eq!(cyan_lch.1, 50.12);
+        assert_eq!(cyan_lch.2, 196.37);
+
+        let blue = Color::new_string("blue").unwrap();
+        let blue_lch = blue.get_lcha();
+        assert_eq!(blue_lch.0, 32.3);
+        assert_eq!(blue_lch.1, 133.81);
+        assert_eq!(blue_lch.2, 306.29);
+
+        let magenta = Color::new_string("magenta").unwrap();
+        let magenta_lch = magenta.get_lcha();
+        assert_eq!(magenta_lch.0, 60.32);
+        assert_eq!(magenta_lch.1, 115.53);
+        assert_eq!(magenta_lch.2, 328.24);
+    }
+
+    #[test]
+    fn color_lab_2_rgb() {
+        let black_lab = Color::new_laba(0.0, 0.0, 0.0, 1.0);
+        assert_eq!(black_lab.red, 0);
+        assert_eq!(black_lab.green, 0);
+        assert_eq!(black_lab.blue, 0);
+
+        let white_lab = Color::new_laba(100.0, 0.0, 0.0, 1.0);
+        assert_eq!(white_lab.red, 255);
+        assert_eq!(white_lab.green, 255);
+        assert_eq!(white_lab.blue, 255);
+
+        let gray_lab = Color::new_laba(53.59, 0.0, 0.0, 1.0);
+        assert_eq!(gray_lab.red, 128);
+        assert_eq!(gray_lab.green, 128);
+        assert_eq!(gray_lab.blue, 128);
+
+        let red_lab = Color::new_laba(53.24, 80.09, 67.2, 1.0);
+        assert_eq!(red_lab.red, 255);
+        assert_eq!(red_lab.green, 0);
+        assert_eq!(red_lab.blue, 0);
+
+        let yellow_lab = Color::new_laba(97.14, -21.55, 94.48, 1.0);
+        assert_eq!(yellow_lab.red, 255);
+        assert_eq!(yellow_lab.green, 255);
+        assert_eq!(yellow_lab.blue, 0);
+
+        let green_lab = Color::new_laba(87.73, -86.18, 83.18, 1.0);
+        assert_eq!(green_lab.red, 0);
+        assert_eq!(green_lab.green, 255);
+        assert_eq!(green_lab.blue, 0);
+
+        let cyan_lab = Color::new_laba(91.11, -48.09, -14.13, 1.0);
+        assert_eq!(cyan_lab.red, 0);
+        assert_eq!(cyan_lab.green, 255);
+        assert_eq!(cyan_lab.blue, 255);
+
+        let blue_lab = Color::new_laba(32.3, 79.19, -107.86, 1.0);
+        assert_eq!(blue_lab.red, 0);
+        assert_eq!(blue_lab.green, 0);
+        assert_eq!(blue_lab.blue, 255);
+
+        let magenta_lab = Color::new_laba(60.32, 98.23, -60.82, 1.0);
+        assert_eq!(magenta_lab.red, 255);
+        assert_eq!(magenta_lab.green, 0);
+        assert_eq!(magenta_lab.blue, 255);
+    }
+
+    #[test]
+    fn color_lch_2_lab() {
+        let black_lch = Color::new_lcha(0.0, 0.0, std::f64::NAN, 1.0);
+        let black_lab = black_lch.get_laba();
+        assert_eq!(black_lab.0, 0.0);
+        assert_eq!(black_lab.1, 0.0);
+        assert_eq!(black_lab.2, 0.0);
+
+        let white_lch = Color::new_lcha(100.0, 0.0, std::f64::NAN, 1.0);
+        let white_lab = white_lch.get_laba();
+        assert_eq!(white_lab.0, 100.0);
+        assert_eq!(white_lab.1, 0.0);
+        assert_eq!(white_lab.2, 0.0);
+
+        let gray_lch = Color::new_lcha(53.59, 0.0, std::f64::NAN, 1.0);
+        let gray_lab = gray_lch.get_laba();
+        assert_eq!(gray_lab.0, 53.59);
+        assert_eq!(gray_lab.1, 0.0);
+        assert_eq!(gray_lab.2, 0.0);
+
+        let red_lch = Color::new_lcha(53.24, 104.55, 40.0, 1.0);
+        let red_lab = red_lch.get_laba();
+        assert_eq!(red_lab.0, 53.24);
+        assert_eq!(red_lab.1, 80.09);
+        assert_eq!(red_lab.2, 67.2);
+
+        let yellow_lch = Color::new_lcha(97.14, 96.91, 102.85, 1.0);
+        let yellow_lab = yellow_lch.get_laba();
+        assert_eq!(yellow_lab.0, 97.14);
+        assert_eq!(yellow_lab.1, -21.55);
+        assert_eq!(yellow_lab.2, 94.48);
+
+        let green_lch = Color::new_lcha(87.73, 119.77, 136.01, 1.0);
+        let green_lab = green_lch.get_laba();
+        assert_eq!(green_lab.0, 87.73);
+        assert_eq!(green_lab.1, -86.18);
+        assert_eq!(green_lab.2, 83.18);
+
+        let cyan_lch = Color::new_lcha(91.11, 50.12, 196.37, 1.0);
+        let cyan_lab = cyan_lch.get_laba();
+        assert_eq!(cyan_lab.0, 91.11);
+        assert_eq!(cyan_lab.1, -48.09);
+        assert_eq!(cyan_lab.2, -14.13);
+
+        let blue_lch = Color::new_lcha(32.3, 133.81, 306.29, 1.0);
+        let blue_lab = blue_lch.get_laba();
+        assert_eq!(blue_lab.0, 32.3);
+        assert_eq!(blue_lab.1, 79.19);
+        assert_eq!(blue_lab.2, -107.86);
+
+        let magenta_lch = Color::new_lcha(60.32, 115.53, 328.24, 1.0);
+        let magenta_lab = magenta_lch.get_laba();
+        assert_eq!(magenta_lab.0, 60.32);
+        assert_eq!(magenta_lab.1, 98.23);
+        assert_eq!(magenta_lab.2, -60.82);
+    }
+
+    #[test]
+    fn color_lch_2_rgb() {
+        let black_lch = Color::new_lcha(0.0, 0.0, std::f64::NAN, 1.0);
+        assert_eq!(black_lch.to_rgb_string(), "rgb(0, 0, 0)");
+
+        let white_lch = Color::new_lcha(100.0, 0.0, std::f64::NAN, 1.0);
+        assert_eq!(white_lch.to_rgb_string(), "rgb(255, 255, 255)");
+
+        let gray_lch = Color::new_lcha(53.59, 0.0, std::f64::NAN, 1.0);
+        assert_eq!(gray_lch.to_rgb_string(), "rgb(128, 128, 128)");
+
+        let red_lch = Color::new_lcha(53.24, 104.55, 40.0, 1.0);
+        assert_eq!(red_lch.to_rgb_string(), "rgb(255, 0, 0)");
+
+        let yellow_lch = Color::new_lcha(97.14, 96.91, 102.85, 1.0);
+        assert_eq!(yellow_lch.to_rgb_string(), "rgb(255, 255, 0)");
+
+        let green_lch = Color::new_lcha(87.73, 119.78, 136.02, 1.0);
+        assert_eq!(green_lch.to_rgb_string(), "rgb(0, 255, 0)");
+
+        let cyan_lch = Color::new_lcha(91.11, 50.12, 196.38, 1.0);
+        assert_eq!(cyan_lch.to_rgb_string(), "rgb(0, 255, 255)");
+
+        let blue_lch = Color::new_lcha(32.3, 133.81, 306.28, 1.0);
+        assert_eq!(blue_lch.to_rgb_string(), "rgb(0, 0, 255)");
+
+        let magenta_lch = Color::new_lcha(60.32, 115.54, 328.23, 1.0);
+        assert_eq!(magenta_lch.to_rgb_string(), "rgb(255, 0, 255)");
+    }
+
+    #[test]
+    fn color_interpolate_lch() {
+        let red = Color::new_string("rgb(255, 0, 0)").unwrap();
+        let green = Color::new_string("rgb(0, 255, 0)").unwrap();
+
+        let interpolate_0 = red.interpolate_lch(green, 0.0);
+        let interpolate_0_1 = red.interpolate_lch(green, 0.1);
+        let interpolate_0_5 = red.interpolate_lch(green, 0.5);
+        let interpolate_1 = red.interpolate_lch(green, 1.0);
+
+        assert_eq!(interpolate_0.to_hex_string(), "#FF0000");
+        assert_eq!(interpolate_0_1.to_hex_string(), "#FE4000");
+        assert_eq!(interpolate_0_5.to_hex_string(), "#D7A600");
+        assert_eq!(interpolate_1.to_hex_string(), "#00FF00");
+    }
+
+    #[test]
+    fn round() {
+        let pi = 3.1425;
+        let pi_round_1 = super::round_with_precision(pi, 1);
+        let pi_round_2 = super::round_with_precision(pi, 2);
+        let pi_round_3 = super::round_with_precision(pi, 3);
+        assert_eq!(pi_round_1, 3.1);
+        assert_eq!(pi_round_2, 3.14);
+        assert_eq!(pi_round_3, 3.143);
     }
 }

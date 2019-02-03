@@ -1,8 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/)
-and this project adheres to [Semantic Versioning](http://semver.org/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](https://semver.org/).
+
+## [0.2.0] - 2019-02-03
+### Added
+- new methods: new_lab(l: f64, a: f64, b: f64), new_laba(l: f64, a: f64, b: f64, alpha: f64), get_laba(&self) -> (f64, f64, f64, f64)
+- new methods: new_lch(lightness: f64, chroma: f64, hue: f64), new_lcha(lightness: f64, chroma: f64, chroma: f64, alpha: f64), get_lcha(&self) -> (f64, f64, f64, f64)
+- new methods: interpolate_hsl(&self, color: Color, interpolation: f64) -> Color, interpolate_hwb(&self, color: Color, interpolation: f64) -> Color, interpolate_lch(&self, color: Color, interpolation: f64) -> Color
+
+### Changed
+- improved documentation
+- changed project to rust edition="2018"
 
 ## [0.1.3] - 2018-12-31
 ### Added

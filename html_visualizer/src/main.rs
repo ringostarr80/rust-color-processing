@@ -50,6 +50,12 @@ fn build_index_html() -> std::io::Result<()> {
     index_html_content.push_str("           <li>");
     index_html_content.push_str("               <a href=\"hwb-examples.html\">hwb examples</a>");
     index_html_content.push_str("           </li>");
+    index_html_content.push_str("           <li>");
+    index_html_content.push_str("               <a href=\"grayscaling.html\">grayscaling</a>");
+    index_html_content.push_str("           </li>");
+    index_html_content.push_str("           <li>");
+    index_html_content.push_str("               <a href=\"interpolation.html\">interpolation</a>");
+    index_html_content.push_str("           </li>");
     index_html_content.push_str("       </ul>");
     index_html_content.push_str("   </body>\n");
     index_html_content.push_str("</html>\n");
@@ -85,6 +91,14 @@ fn build_index_html() -> std::io::Result<()> {
     let mut hwb_examples_file = File::create("output/hwb-examples.html")?;
     hwb_examples_file.write_all(hwb_examples_html_content.as_bytes())?;
 
+    let grayscaling_html_content = build_grayscaling_html();
+    let mut grayscaling_file = File::create("output/grayscaling.html")?;
+    grayscaling_file.write_all(grayscaling_html_content.as_bytes())?;
+
+    let interpolation_html_content = build_interpolation_html();
+    let mut interpolation_file = File::create("output/interpolation.html")?;
+    interpolation_file.write_all(interpolation_html_content.as_bytes())?;
+
     Ok(())
 }
 
@@ -93,6 +107,11 @@ fn build_index_css() -> String {
     css_content.push_str(".color-box {\n");
     css_content.push_str("  display: inline-block;\n");
     css_content.push_str("  width: 100px;\n");
+    css_content.push_str("  height: 20px;\n");
+    css_content.push_str("}\n");
+    css_content.push_str(".color-bar {\n");
+    css_content.push_str("  display: inline-block;\n");
+    css_content.push_str("  width: 1px;\n");
     css_content.push_str("  height: 20px;\n");
     css_content.push_str("}\n");
     css_content.push_str("table {\n");
@@ -479,6 +498,150 @@ fn build_hwb_color_table_row(h: f64, w: f64, b: f64) -> String {
     return row_content;
 }
 
+fn build_grayscaling_table_row(h: f64, w: f64, b: f64) -> String {
+    let hwb = Color::new_hwb(h, w, b);
+    let hex_string = hwb.to_hex_string();
+    let hex_str = hex_string.as_str();
+
+    let grayscaled = hwb.grayscale();
+    let grayscaled_string = grayscaled.to_hex_string();
+    let grayscaled_str = grayscaled_string.as_str();
+
+    let grayscaled_hdtv = hwb.grayscale_hdtv();
+    let grayscaled_hdtv_string = grayscaled_hdtv.to_hex_string();
+    let grayscaled_hdtv_str = grayscaled_hdtv_string.as_str();
+
+    let grayscaled_hdr = hwb.grayscale_hdr();
+    let grayscaled_hdr_string = grayscaled_hdr.to_hex_string();
+    let grayscaled_hdr_str = grayscaled_hdr_string.as_str();
+
+    let mut row_content = String::new();
+    row_content.push_str("              <tr>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(hex_str);
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(grayscaled_str);
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(grayscaled_hdtv_str);
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(grayscaled_hdr_str);
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("              </tr>\n");
+
+    return row_content;
+}
+
+fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> String {
+    let start_color = Color::new_string(start_color_str).unwrap();
+    let end_color = Color::new_string(end_color_str).unwrap();
+    let color_bar_width = 256;
+
+    let build_row = |method: &str| -> String {
+        let mut row_content = String::new();
+        row_content.push_str("              <tr>\n");
+        row_content.push_str("                  <td class=\"center-text\">");
+        row_content.push_str(method);
+        row_content.push_str("</td>\n");
+        row_content.push_str("                  <td class=\"center-text\">");
+        row_content.push_str(start_color_str);
+        row_content.push_str("</td>\n");
+        row_content.push_str("                  <td class=\"center-text\">");
+        match method {
+            "css linear-gradient" => {
+                row_content.push_str("<div class=\"color-box\" style=\"background-image: linear-gradient(to right, ");
+                row_content.push_str(start_color_str);
+                row_content.push_str(", ");
+                row_content.push_str(end_color_str);
+                row_content.push_str("); width: ");
+                row_content.push_str(color_bar_width.to_string().as_str());
+                row_content.push_str("px;\"></div>\n");
+            },
+            "rust color.interpolate(color, interpolation)" => {
+                row_content.push_str("<div>");
+                for i in 0..color_bar_width {
+                    let interpolation = i as f64 / color_bar_width as f64;
+                    let interpolated_color = start_color.interpolate(end_color, interpolation);
+                    row_content.push_str("<div class=\"color-bar\" style=\"background-color: ");
+                    row_content.push_str(interpolated_color.to_hex_string().as_str());
+                    row_content.push_str(";\"></div>");
+                }
+                row_content.push_str("</div>");
+            },
+            "rust color.interpolate_hsv(color, interpolation)" => {
+                row_content.push_str("<div>");
+                for i in 0..color_bar_width {
+                    let interpolation = i as f64 / color_bar_width as f64;
+                    let interpolated_color = start_color.interpolate_hsv(end_color, interpolation);
+                    row_content.push_str("<div class=\"color-bar\" style=\"background-color: ");
+                    row_content.push_str(interpolated_color.to_hex_string().as_str());
+                    row_content.push_str(";\"></div>");
+                }
+                row_content.push_str("</div>");
+            },
+            "rust color.interpolate_hsl(color, interpolation)" => {
+                row_content.push_str("<div>");
+                for i in 0..color_bar_width {
+                    let interpolation = i as f64 / color_bar_width as f64;
+                    let interpolated_color = start_color.interpolate_hsl(end_color, interpolation);
+                    row_content.push_str("<div class=\"color-bar\" style=\"background-color: ");
+                    row_content.push_str(interpolated_color.to_hex_string().as_str());
+                    row_content.push_str(";\"></div>");
+                }
+                row_content.push_str("</div>");
+            },
+            "rust color.interpolate_hwb(color, interpolation)" => {
+                row_content.push_str("<div>");
+                for i in 0..color_bar_width {
+                    let interpolation = i as f64 / color_bar_width as f64;
+                    let interpolated_color = start_color.interpolate_hwb(end_color, interpolation);
+                    row_content.push_str("<div class=\"color-bar\" style=\"background-color: ");
+                    row_content.push_str(interpolated_color.to_hex_string().as_str());
+                    row_content.push_str(";\"></div>");
+                }
+                row_content.push_str("</div>");
+            },
+            "rust color.interpolate_lch(color, interpolation)" => {
+                row_content.push_str("<div>");
+                for i in 0..color_bar_width {
+                    let interpolation = i as f64 / color_bar_width as f64;
+                    let interpolated_color = start_color.interpolate_lch(end_color, interpolation);
+                    row_content.push_str("<div class=\"color-bar\" style=\"background-color: ");
+                    row_content.push_str(interpolated_color.to_hex_string().as_str());
+                    row_content.push_str(";\"></div>");
+                }
+                row_content.push_str("</div>");
+            },
+            _ => {}
+        }
+        row_content.push_str("</td>");
+        row_content.push_str("                  <td class=\"center-text\">");
+        row_content.push_str(end_color_str);
+        row_content.push_str("</td>\n");
+        row_content.push_str("              </tr>\n");
+
+        row_content
+    };
+
+    let mut row_content = String::new();
+    let row1 = build_row("css linear-gradient");
+    let row2 = build_row("rust color.interpolate(color, interpolation)");
+    let row3 = build_row("rust color.interpolate_hsv(color, interpolation)");
+    let row4 = build_row("rust color.interpolate_hsl(color, interpolation)");
+    let row5 = build_row("rust color.interpolate_hwb(color, interpolation)");
+    let row6 = build_row("rust color.interpolate_lch(color, interpolation)");
+    row_content.push_str(row1.as_str());
+    row_content.push_str(row2.as_str());
+    row_content.push_str(row3.as_str());
+    row_content.push_str(row4.as_str());
+    row_content.push_str(row5.as_str());
+    row_content.push_str(row6.as_str());
+
+    row_content
+}
+
 fn build_gray_examples_html() -> String {
     let mut html_content = String::new();
     html_content.push_str("<!DOCTYPE html>\n");
@@ -636,6 +799,81 @@ fn build_hwb_examples_html() -> String {
     for h in 0..6 {
         html_content.push_str(build_hwb_color_table_row(h as f64 * 60.0, 0.0, 0.5).as_str());
     }
+    html_content.push_str("         </tbody>\n");
+    html_content.push_str("     </table>\n");
+    html_content.push_str(" </body>\n");
+    html_content.push_str("</html>\n");
+
+    return html_content;
+}
+
+fn build_grayscaling_html() -> String {
+    let mut html_content = String::new();
+    html_content.push_str("<!DOCTYPE html>\n");
+    html_content.push_str("<html>\n");
+    html_content.push_str(" <head>\n");
+    html_content.push_str("     <title>grayscaling</title>\n");
+    html_content.push_str("     <link rel=\"stylesheet\" href=\"index.css\">\n");
+    html_content.push_str(" </head>\n");
+    html_content.push_str(" <body>\n");
+    html_content.push_str("     <a href=\"index.html\">&lt; back</a>");
+    html_content.push_str("     <table class=\"center\">\n");
+    html_content.push_str("         <thead>\n");
+    html_content.push_str("             <tr>\n");
+    html_content.push_str("                 <th>color</th>\n");
+    html_content.push_str("                 <th>by rust color.grayscale()</th>\n");
+    html_content.push_str("                 <th>by rust color.grayscale_hdtv()</th>\n");
+    html_content.push_str("                 <th>by rust color.grayscale_hdr()</th>\n");
+    html_content.push_str("             </tr>\n");
+    html_content.push_str("         </thead>\n");
+    html_content.push_str("         <tbody>\n");
+    for h in 0..36 {
+        html_content.push_str(build_grayscaling_table_row(h as f64 * 10.0, 0.0, 0.0).as_str());
+    }
+    html_content.push_str("         </tbody>\n");
+    html_content.push_str("     </table>\n");
+    html_content.push_str(" </body>\n");
+    html_content.push_str("</html>\n");
+
+    return html_content;
+}
+
+fn build_interpolation_html() -> String {
+    let mut html_content = String::new();
+    html_content.push_str("<!DOCTYPE html>\n");
+    html_content.push_str("<html>\n");
+    html_content.push_str(" <head>\n");
+    html_content.push_str("     <title>interpolation</title>\n");
+    html_content.push_str("     <link rel=\"stylesheet\" href=\"index.css\">\n");
+    html_content.push_str(" </head>\n");
+    html_content.push_str(" <body>\n");
+    html_content.push_str("     <a href=\"index.html\">&lt; back</a>");
+    html_content.push_str("     <table class=\"center\">\n");
+    html_content.push_str("         <thead>\n");
+    html_content.push_str("             <tr>\n");
+    html_content.push_str("                 <th>method</th>\n");
+    html_content.push_str("                 <th>start-color</th>\n");
+    html_content.push_str("                 <th>interpolation</th>\n");
+    html_content.push_str("                 <th>end-color</th>\n");
+    html_content.push_str("             </tr>\n");
+    html_content.push_str("         </thead>\n");
+    html_content.push_str("         <tbody>\n");
+    html_content.push_str(build_interpolation_table_row("white", "black").as_str());
+    html_content.push_str(build_interpolation_table_row("red", "green").as_str());
+    html_content.push_str(build_interpolation_table_row("red", "blue").as_str());
+    html_content.push_str(build_interpolation_table_row("red", "cyan").as_str());
+    html_content.push_str(build_interpolation_table_row("red", "magenta").as_str());
+    html_content.push_str(build_interpolation_table_row("red", "yellow").as_str());
+    html_content.push_str(build_interpolation_table_row("green", "blue").as_str());
+    html_content.push_str(build_interpolation_table_row("green", "cyan").as_str());
+    html_content.push_str(build_interpolation_table_row("green", "magenta").as_str());
+    html_content.push_str(build_interpolation_table_row("green", "yellow").as_str());
+    html_content.push_str(build_interpolation_table_row("blue", "cyan").as_str());
+    html_content.push_str(build_interpolation_table_row("blue", "magenta").as_str());
+    html_content.push_str(build_interpolation_table_row("blue", "yellow").as_str());
+    html_content.push_str(build_interpolation_table_row("cyan", "magenta").as_str());
+    html_content.push_str(build_interpolation_table_row("cyan", "yellow").as_str());
+    html_content.push_str(build_interpolation_table_row("magenta", "yellow").as_str());
     html_content.push_str("         </tbody>\n");
     html_content.push_str("     </table>\n");
     html_content.push_str(" </body>\n");

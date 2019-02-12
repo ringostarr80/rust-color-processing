@@ -1,6 +1,6 @@
 ![](https://img.shields.io/github/license/ringostarr80/rust-color-processing.svg)
 [![Crates.io](https://img.shields.io/crates/v/color_processing.svg)](https://crates.io/crates/color_processing)
-![Documentation](https://docs.rs/color_processing/badge.svg)
+[![Documentation](https://docs.rs/color_processing/badge.svg)](https://docs.rs/color_processing/)
 
 # Informations
 

@@ -84,7 +84,7 @@ impl Color {
     const LAB_CONSTANT_T2: f64 = 0.12841855;  // 3 * t1 * t1
     const LAB_CONSTANT_T3: f64 = 0.008856452; // t1 * t1 * t1
     // Corresponds roughly to RGB brighter/darker
-    //const LAB_CONSTANT_KN: f64 = 18.0;
+    const LAB_CONSTANT_KN: f64 = 18.0;
     // D65 standard referent
     const LAB_CONSTANT_XN: f64 = 0.950470;
     const LAB_CONSTANT_YN: f64 = 1.0;
@@ -1511,6 +1511,43 @@ impl Color {
 			None => Err("unable to parse color to colorize.")
 		}
 	}
+
+    /// Gets a brightened color by a specified amount.
+    /// 
+    /// # Example
+    /// ```
+    /// use color_processing::Color;
+    /// 
+    /// let red = Color::new_string("#ff0000").unwrap();
+    /// let red_brightened_1 = red.brighten(1.0);
+    /// let red_brightened_10 = red.brighten(10.0);
+    /// 
+    /// assert_eq!(red_brightened_1.to_hex_string(), "#FF5A36");
+    /// assert_eq!(red_brightened_10.to_hex_string(), "#FFFFFF");
+    /// ```
+    pub fn brighten(&self, amount: f64) -> Color {
+        self.darken(-amount)
+    }
+
+    /// Gets a darkened color by a specified amount.
+    /// 
+    /// # Example
+    /// ```
+    /// use color_processing::Color;
+    /// 
+    /// let red = Color::new_string("#ff0000").unwrap();
+    /// let red_darkened_1 = red.darken(1.0);
+    /// let red_darkened_10 = red.darken(10.0);
+    /// 
+    /// assert_eq!(red_darkened_1.to_hex_string(), "#C20000");
+    /// assert_eq!(red_darkened_10.to_hex_string(), "#000000");
+    /// ```
+    pub fn darken(&self, amount: f64) -> Color {
+        let laba = self.get_lcha();
+        let new_l = laba.0 - Color::LAB_CONSTANT_KN * amount;
+
+        Color::new_lcha(new_l, laba.1, laba.2, laba.3)
+    }
 
     /// Gets a grayscaled color from the color.
     /// 
@@ -4190,6 +4227,28 @@ mod tests {
         assert_eq!(interpolate_0_1.to_hex_string(), "#FE4000");
         assert_eq!(interpolate_0_5.to_hex_string(), "#D7A600");
         assert_eq!(interpolate_1.to_hex_string(), "#00FF00");
+    }
+
+    #[test]
+    fn color_darken() {
+        let color = Color::new_string("#ff0000").unwrap();
+        let color_darkened_1 = color.darken(1.0);
+        let color_darkened_2 = color.darken(2.0);
+        let color_darkened_10 = color.darken(10.0);
+
+        assert_eq!(color_darkened_1.to_hex_string(), "#C20000");
+        assert_eq!(color_darkened_2.to_hex_string(), "#890000");
+        assert_eq!(color_darkened_10.to_hex_string(), "#000000");
+    }
+
+    #[test]
+    fn color_brighten() {
+        let color = Color::new_string("#ff0000").unwrap();
+        let color_brightened_1 = color.brighten(1.0);
+        let color_brightened_10 = color.brighten(10.0);
+
+        assert_eq!(color_brightened_1.to_hex_string(), "#FF5A36");
+        assert_eq!(color_brightened_10.to_hex_string(), "#FFFFFF");
     }
 
     #[test]

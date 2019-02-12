@@ -56,6 +56,9 @@ fn build_index_html() -> std::io::Result<()> {
     index_html_content.push_str("           <li>");
     index_html_content.push_str("               <a href=\"interpolation.html\">interpolation</a>");
     index_html_content.push_str("           </li>");
+    index_html_content.push_str("           <li>");
+    index_html_content.push_str("               <a href=\"darken-brighten.html\">darken/brighten</a>");
+    index_html_content.push_str("           </li>");
     index_html_content.push_str("       </ul>");
     index_html_content.push_str("   </body>\n");
     index_html_content.push_str("</html>\n");
@@ -98,6 +101,10 @@ fn build_index_html() -> std::io::Result<()> {
     let interpolation_html_content = build_interpolation_html();
     let mut interpolation_file = File::create("output/interpolation.html")?;
     interpolation_file.write_all(interpolation_html_content.as_bytes())?;
+
+    let darken_brighten_html_content = build_darken_brighten_html();
+    let mut darken_brighten_file = File::create("output/darken-brighten.html")?;
+    darken_brighten_file.write_all(darken_brighten_html_content.as_bytes())?;
 
     Ok(())
 }
@@ -534,6 +541,43 @@ fn build_grayscaling_table_row(h: f64, w: f64, b: f64) -> String {
     return row_content;
 }
 
+fn build_darken_brighten_table_row(base_color_str: &str) -> String {
+    let base_color = Color::new_string(base_color_str).unwrap();
+    let darkened_1 = base_color.darken(1.0);
+    let darkened_2 = base_color.darken(2.0);
+    let darkened_3 = base_color.darken(3.0);
+    let brightened_1 = base_color.brighten(1.0);
+    let brightened_2 = base_color.brighten(2.0);
+    let brightened_3 = base_color.brighten(3.0);
+
+    let mut row_content = String::new();
+    row_content.push_str("              <tr>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(base_color.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(darkened_1.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(darkened_2.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(darkened_3.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(brightened_1.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(brightened_2.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\" style=\"background-color: ");
+    row_content.push_str(brightened_3.to_hex_string().as_str());
+    row_content.push_str(";\"></div></td>\n");
+    row_content.push_str("              </tr>\n");
+
+    row_content
+}
+
 fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> String {
     let start_color = Color::new_string(start_color_str).unwrap();
     let end_color = Color::new_string(end_color_str).unwrap();
@@ -874,6 +918,45 @@ fn build_interpolation_html() -> String {
     html_content.push_str(build_interpolation_table_row("cyan", "magenta").as_str());
     html_content.push_str(build_interpolation_table_row("cyan", "yellow").as_str());
     html_content.push_str(build_interpolation_table_row("magenta", "yellow").as_str());
+    html_content.push_str("         </tbody>\n");
+    html_content.push_str("     </table>\n");
+    html_content.push_str(" </body>\n");
+    html_content.push_str("</html>\n");
+
+    return html_content;
+}
+
+fn build_darken_brighten_html() -> String {
+    let mut html_content = String::new();
+    html_content.push_str("<!DOCTYPE html>\n");
+    html_content.push_str("<html>\n");
+    html_content.push_str(" <head>\n");
+    html_content.push_str("     <title>darken/brighten</title>\n");
+    html_content.push_str("     <link rel=\"stylesheet\" href=\"index.css\">\n");
+    html_content.push_str(" </head>\n");
+    html_content.push_str(" <body>\n");
+    html_content.push_str("     <a href=\"index.html\">&lt; back</a>");
+    html_content.push_str("     <table class=\"center\">\n");
+    html_content.push_str("         <thead>\n");
+    html_content.push_str("             <tr>\n");
+    html_content.push_str("                 <th>base-color</th>\n");
+    html_content.push_str("                 <th>darken amount 1</th>\n");
+    html_content.push_str("                 <th>darken amount 2</th>\n");
+    html_content.push_str("                 <th>darken amount 3</th>\n");
+    html_content.push_str("                 <th>brighten amount 1</th>\n");
+    html_content.push_str("                 <th>brighten amount 2</th>\n");
+    html_content.push_str("                 <th>brighten amount 3</th>\n");
+    html_content.push_str("             </tr>\n");
+    html_content.push_str("         </thead>\n");
+    html_content.push_str("         <tbody>\n");
+    html_content.push_str(build_darken_brighten_table_row("red").as_str());
+    html_content.push_str(build_darken_brighten_table_row("green").as_str());
+    html_content.push_str(build_darken_brighten_table_row("blue").as_str());
+    html_content.push_str(build_darken_brighten_table_row("cyan").as_str());
+    html_content.push_str(build_darken_brighten_table_row("magenta").as_str());
+    html_content.push_str(build_darken_brighten_table_row("yellow").as_str());
+    html_content.push_str(build_darken_brighten_table_row("white").as_str());
+    html_content.push_str(build_darken_brighten_table_row("black").as_str());
     html_content.push_str("         </tbody>\n");
     html_content.push_str("     </table>\n");
     html_content.push_str(" </body>\n");

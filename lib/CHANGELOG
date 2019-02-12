@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2019-02
+### Added
+- new methods: darken(&self, amount: f64), brighten(&self, amount: f64)
+
 ## [0.2.0] - 2019-02-03
 ### Added
 - new methods: new_lab(l: f64, a: f64, b: f64), new_laba(l: f64, a: f64, b: f64, alpha: f64), get_laba(&self) -> (f64, f64, f64, f64)

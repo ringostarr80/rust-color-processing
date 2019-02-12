@@ -5,6 +5,27 @@ It can parse strings in different formats (known color names, hex, rgb, cmyk, hs
 
 This library cannot modify images.
 
+## Usage
+
+To use `color_processing`, first add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+color_processing = "0.2"
+```
+
+Next, add this to your crate:
+
+```rust
+extern crate color_processing;
+
+use color_processing::Color;
+
+fn main() {
+    // ...
+}
+```
+
 # Documentation
 
 For the latest documentation and examples, please go to [https://docs.rs/color_processing](https://docs.rs/color_processing).

@@ -1,4 +1,4 @@
-![](https://img.shields.io/github/license/ringostarr80/rust-color-processing.svg)
+[![License: CC0](https://img.shields.io/github/license/ringostarr80/rust-color-processing.svg)](https://creativecommons.org/publicdomain/zero/1.0/legalcode)
 [![Crates.io](https://img.shields.io/crates/v/color_processing.svg)](https://crates.io/crates/color_processing)
 [![Documentation](https://docs.rs/color_processing/badge.svg)](https://docs.rs/color_processing/)
 

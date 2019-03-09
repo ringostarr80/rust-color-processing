@@ -1,19 +1,17 @@
 extern crate color_processing;
 
+use color_processing::{Color, KnownColors};
 use std::fs;
 use std::fs::File;
 use std::io::prelude::Write;
-use color_processing::{Color, KnownColors};
 
 fn main() {
     let output_directory_ok = match fs::create_dir("output") {
         Ok(_) => true,
-        Err(e) => {
-            match e.kind() {
-                std::io::ErrorKind::AlreadyExists => true,
-                _ => false
-            }
-        }
+        Err(e) => match e.kind() {
+            std::io::ErrorKind::AlreadyExists => true,
+            _ => false,
+        },
     };
     if !output_directory_ok {
         return;
@@ -33,7 +31,9 @@ fn build_index_html() -> std::io::Result<()> {
     index_html_content.push_str("       <h1>color_processing visualizer</h1>\n");
     index_html_content.push_str("       <ul>");
     index_html_content.push_str("           <li>");
-    index_html_content.push_str("               <a href=\"enum-string-comparison.html\">enum-string-comparison</a><br />");
+    index_html_content.push_str(
+        "               <a href=\"enum-string-comparison.html\">enum-string-comparison</a><br />",
+    );
     index_html_content.push_str("           </li>");
     index_html_content.push_str("           <li>");
     index_html_content.push_str("               <a href=\"cmyk-examples.html\">cmyk examples</a>");
@@ -57,7 +57,8 @@ fn build_index_html() -> std::io::Result<()> {
     index_html_content.push_str("               <a href=\"interpolation.html\">interpolation</a>");
     index_html_content.push_str("           </li>");
     index_html_content.push_str("           <li>");
-    index_html_content.push_str("               <a href=\"darken-brighten.html\">darken/brighten</a>");
+    index_html_content
+        .push_str("               <a href=\"darken-brighten.html\">darken/brighten</a>");
     index_html_content.push_str("           </li>");
     index_html_content.push_str("       </ul>");
     index_html_content.push_str("   </body>\n");
@@ -153,20 +154,24 @@ fn build_enum_string_comparison_html() -> String {
     html_content.push_str("             <tr>\n");
     html_content.push_str("                 <th>name</th>\n");
     html_content.push_str("                 <th>by css-property</th>\n");
-    html_content.push_str("                 <th>by rust Color::new_string(\"&lt;name&gt;\")</th>\n");
-    html_content.push_str("                 <th>by rust Color::new_enum(&lt;KnownColors::Name&gt;)</th>\n");
+    html_content
+        .push_str("                 <th>by rust Color::new_string(\"&lt;name&gt;\")</th>\n");
+    html_content
+        .push_str("                 <th>by rust Color::new_enum(&lt;KnownColors::Name&gt;)</th>\n");
     html_content.push_str("             </tr>\n");
     html_content.push_str("         </thead>\n");
     html_content.push_str("         <tbody>\n");
     html_content.push_str(build_color_table_row("aliceblue", KnownColors::AliceBlue).as_str());
-    html_content.push_str(build_color_table_row("antiquewhite", KnownColors::AntiqueWhite).as_str());
+    html_content
+        .push_str(build_color_table_row("antiquewhite", KnownColors::AntiqueWhite).as_str());
     html_content.push_str(build_color_table_row("aqua", KnownColors::Aqua).as_str());
     html_content.push_str(build_color_table_row("aquamarine", KnownColors::AquaMarine).as_str());
     html_content.push_str(build_color_table_row("azure", KnownColors::Azure).as_str());
     html_content.push_str(build_color_table_row("beige", KnownColors::Beige).as_str());
     html_content.push_str(build_color_table_row("bisque", KnownColors::Bisque).as_str());
     html_content.push_str(build_color_table_row("black", KnownColors::Black).as_str());
-    html_content.push_str(build_color_table_row("blanchedalmond", KnownColors::BlanchedAlmond).as_str());
+    html_content
+        .push_str(build_color_table_row("blanchedalmond", KnownColors::BlanchedAlmond).as_str());
     html_content.push_str(build_color_table_row("blue", KnownColors::Blue).as_str());
     html_content.push_str(build_color_table_row("blueviolet", KnownColors::BlueViolet).as_str());
     html_content.push_str(build_color_table_row("brown", KnownColors::Brown).as_str());
@@ -175,26 +180,33 @@ fn build_enum_string_comparison_html() -> String {
     html_content.push_str(build_color_table_row("chartreuse", KnownColors::Chartreuse).as_str());
     html_content.push_str(build_color_table_row("chocolate", KnownColors::Chocolate).as_str());
     html_content.push_str(build_color_table_row("coral", KnownColors::Coral).as_str());
-    html_content.push_str(build_color_table_row("cornflowerblue", KnownColors::CornflowerBlue).as_str());
+    html_content
+        .push_str(build_color_table_row("cornflowerblue", KnownColors::CornflowerBlue).as_str());
     html_content.push_str(build_color_table_row("cornsilk", KnownColors::Cornsilk).as_str());
     html_content.push_str(build_color_table_row("crimson", KnownColors::Crimson).as_str());
     html_content.push_str(build_color_table_row("cyan", KnownColors::Cyan).as_str());
     html_content.push_str(build_color_table_row("darkblue", KnownColors::DarkBlue).as_str());
     html_content.push_str(build_color_table_row("darkcyan", KnownColors::DarkCyan).as_str());
-    html_content.push_str(build_color_table_row("darkgoldenrod", KnownColors::DarkGoldenrod).as_str());
+    html_content
+        .push_str(build_color_table_row("darkgoldenrod", KnownColors::DarkGoldenrod).as_str());
     html_content.push_str(build_color_table_row("darkgray", KnownColors::DarkGray).as_str());
     html_content.push_str(build_color_table_row("darkgreen", KnownColors::DarkGreen).as_str());
     html_content.push_str(build_color_table_row("darkkhaki", KnownColors::DarkKhaki).as_str());
     html_content.push_str(build_color_table_row("darkmagenta", KnownColors::DarkMagenta).as_str());
-    html_content.push_str(build_color_table_row("darkolivegreen", KnownColors::DarkOliveGreen).as_str());
+    html_content
+        .push_str(build_color_table_row("darkolivegreen", KnownColors::DarkOliveGreen).as_str());
     html_content.push_str(build_color_table_row("darkorange", KnownColors::DarkOrange).as_str());
     html_content.push_str(build_color_table_row("darkorchid", KnownColors::DarkOrchid).as_str());
     html_content.push_str(build_color_table_row("darkred", KnownColors::DarkRed).as_str());
     html_content.push_str(build_color_table_row("darksalmon", KnownColors::DarkSalmon).as_str());
-    html_content.push_str(build_color_table_row("darkseagreen", KnownColors::DarkSeaGreen).as_str());
-    html_content.push_str(build_color_table_row("darkslateblue", KnownColors::DarkSlateBlue).as_str());
-    html_content.push_str(build_color_table_row("darkslategray", KnownColors::DarkSlateGray).as_str());
-    html_content.push_str(build_color_table_row("darkturquoise", KnownColors::DarkTurquoise).as_str());
+    html_content
+        .push_str(build_color_table_row("darkseagreen", KnownColors::DarkSeaGreen).as_str());
+    html_content
+        .push_str(build_color_table_row("darkslateblue", KnownColors::DarkSlateBlue).as_str());
+    html_content
+        .push_str(build_color_table_row("darkslategray", KnownColors::DarkSlateGray).as_str());
+    html_content
+        .push_str(build_color_table_row("darkturquoise", KnownColors::DarkTurquoise).as_str());
     html_content.push_str(build_color_table_row("darkviolet", KnownColors::DarkViolet).as_str());
     html_content.push_str(build_color_table_row("deeppink", KnownColors::DeepPink).as_str());
     html_content.push_str(build_color_table_row("deepskyblue", KnownColors::DeepSkyBlue).as_str());
@@ -218,37 +230,56 @@ fn build_enum_string_comparison_html() -> String {
     html_content.push_str(build_color_table_row("ivory", KnownColors::Ivory).as_str());
     html_content.push_str(build_color_table_row("khaki", KnownColors::Khaki).as_str());
     html_content.push_str(build_color_table_row("lavender", KnownColors::Lavender).as_str());
-    html_content.push_str(build_color_table_row("lavenderblush", KnownColors::LavenderBlush).as_str());
+    html_content
+        .push_str(build_color_table_row("lavenderblush", KnownColors::LavenderBlush).as_str());
     html_content.push_str(build_color_table_row("lawngreen", KnownColors::LawnGreen).as_str());
-    html_content.push_str(build_color_table_row("lemonchiffon", KnownColors::LemonChiffon).as_str());
+    html_content
+        .push_str(build_color_table_row("lemonchiffon", KnownColors::LemonChiffon).as_str());
     html_content.push_str(build_color_table_row("lightblue", KnownColors::LightBlue).as_str());
     html_content.push_str(build_color_table_row("lightcoral", KnownColors::LightCoral).as_str());
     html_content.push_str(build_color_table_row("lightcyan", KnownColors::LightCyan).as_str());
-    html_content.push_str(build_color_table_row("lightgoldenrodyellow", KnownColors::LightGoldenrodYellow).as_str());
+    html_content.push_str(
+        build_color_table_row("lightgoldenrodyellow", KnownColors::LightGoldenrodYellow).as_str(),
+    );
     html_content.push_str(build_color_table_row("lightgray", KnownColors::LightGray).as_str());
     html_content.push_str(build_color_table_row("lightgreen", KnownColors::LightGreen).as_str());
     html_content.push_str(build_color_table_row("lightpink", KnownColors::LightPink).as_str());
     html_content.push_str(build_color_table_row("lightsalmon", KnownColors::LightSalmon).as_str());
-    html_content.push_str(build_color_table_row("lightseagreen", KnownColors::LightSeaGreen).as_str());
-    html_content.push_str(build_color_table_row("lightskyblue", KnownColors::LightSkyBlue).as_str());
-    html_content.push_str(build_color_table_row("lightslategray", KnownColors::LightSlateGray).as_str());
-    html_content.push_str(build_color_table_row("lightsteelblue", KnownColors::LightSteelBlue).as_str());
+    html_content
+        .push_str(build_color_table_row("lightseagreen", KnownColors::LightSeaGreen).as_str());
+    html_content
+        .push_str(build_color_table_row("lightskyblue", KnownColors::LightSkyBlue).as_str());
+    html_content
+        .push_str(build_color_table_row("lightslategray", KnownColors::LightSlateGray).as_str());
+    html_content
+        .push_str(build_color_table_row("lightsteelblue", KnownColors::LightSteelBlue).as_str());
     html_content.push_str(build_color_table_row("lightyellow", KnownColors::LightYellow).as_str());
     html_content.push_str(build_color_table_row("lime", KnownColors::Lime).as_str());
     html_content.push_str(build_color_table_row("limegreen", KnownColors::LimeGreen).as_str());
     html_content.push_str(build_color_table_row("linen", KnownColors::Linen).as_str());
     html_content.push_str(build_color_table_row("magenta", KnownColors::Magenta).as_str());
     html_content.push_str(build_color_table_row("maroon", KnownColors::Maroon).as_str());
-    html_content.push_str(build_color_table_row("mediumaquamarine", KnownColors::MediumAquaMarine).as_str());
+    html_content.push_str(
+        build_color_table_row("mediumaquamarine", KnownColors::MediumAquaMarine).as_str(),
+    );
     html_content.push_str(build_color_table_row("mediumblue", KnownColors::MediumBlue).as_str());
-    html_content.push_str(build_color_table_row("mediumorchid", KnownColors::MediumOrchid).as_str());
-    html_content.push_str(build_color_table_row("mediumpurple", KnownColors::MediumPurple).as_str());
-    html_content.push_str(build_color_table_row("mediumseagreen", KnownColors::MediumSeaGreen).as_str());
-    html_content.push_str(build_color_table_row("mediumslateblue", KnownColors::MediumSlateBlue).as_str());
-    html_content.push_str(build_color_table_row("mediumspringgreen", KnownColors::MediumSpringGreen).as_str());
-    html_content.push_str(build_color_table_row("mediumturquoise", KnownColors::MediumTurquoise).as_str());
-    html_content.push_str(build_color_table_row("mediumvioletred", KnownColors::MediumVioletRed).as_str());
-    html_content.push_str(build_color_table_row("midnightblue", KnownColors::MidnightBlue).as_str());
+    html_content
+        .push_str(build_color_table_row("mediumorchid", KnownColors::MediumOrchid).as_str());
+    html_content
+        .push_str(build_color_table_row("mediumpurple", KnownColors::MediumPurple).as_str());
+    html_content
+        .push_str(build_color_table_row("mediumseagreen", KnownColors::MediumSeaGreen).as_str());
+    html_content
+        .push_str(build_color_table_row("mediumslateblue", KnownColors::MediumSlateBlue).as_str());
+    html_content.push_str(
+        build_color_table_row("mediumspringgreen", KnownColors::MediumSpringGreen).as_str(),
+    );
+    html_content
+        .push_str(build_color_table_row("mediumturquoise", KnownColors::MediumTurquoise).as_str());
+    html_content
+        .push_str(build_color_table_row("mediumvioletred", KnownColors::MediumVioletRed).as_str());
+    html_content
+        .push_str(build_color_table_row("midnightblue", KnownColors::MidnightBlue).as_str());
     html_content.push_str(build_color_table_row("mintcream", KnownColors::MintCream).as_str());
     html_content.push_str(build_color_table_row("mistyrose", KnownColors::MistyRose).as_str());
     html_content.push_str(build_color_table_row("moccasin", KnownColors::Moccasin).as_str());
@@ -260,10 +291,13 @@ fn build_enum_string_comparison_html() -> String {
     html_content.push_str(build_color_table_row("orange", KnownColors::Orange).as_str());
     html_content.push_str(build_color_table_row("orangered", KnownColors::OrangeRed).as_str());
     html_content.push_str(build_color_table_row("orchid", KnownColors::Orchid).as_str());
-    html_content.push_str(build_color_table_row("palegoldenrod", KnownColors::PaleGoldenrod).as_str());
+    html_content
+        .push_str(build_color_table_row("palegoldenrod", KnownColors::PaleGoldenrod).as_str());
     html_content.push_str(build_color_table_row("palegreen", KnownColors::PaleGreen).as_str());
-    html_content.push_str(build_color_table_row("paleturquoise", KnownColors::PaleTurquoise).as_str());
-    html_content.push_str(build_color_table_row("palevioletred", KnownColors::PaleVioletRed).as_str());
+    html_content
+        .push_str(build_color_table_row("paleturquoise", KnownColors::PaleTurquoise).as_str());
+    html_content
+        .push_str(build_color_table_row("palevioletred", KnownColors::PaleVioletRed).as_str());
     html_content.push_str(build_color_table_row("papayawhip", KnownColors::PapayaWhip).as_str());
     html_content.push_str(build_color_table_row("peachpuff", KnownColors::PeachPuff).as_str());
     html_content.push_str(build_color_table_row("peru", KnownColors::Peru).as_str());
@@ -321,7 +355,9 @@ fn build_cmyk_examples_html() -> String {
     html_content.push_str("         <thead>\n");
     html_content.push_str("             <tr>\n");
     html_content.push_str("                 <th>values</th>\n");
-    html_content.push_str("                 <th>by rust Color::new_cmyk(cyan, magenta, yellow, key)</th>\n");
+    html_content.push_str(
+        "                 <th>by rust Color::new_cmyk(cyan, magenta, yellow, key)</th>\n",
+    );
     html_content.push_str("                 <th>by rust Color::new_string(\"cmyk(&lt;c&gt;%, &lt;m&gt;%, &lt;y&gt;%, &lt;k&gt;%)\")</th>\n");
     html_content.push_str("             </tr>\n");
     html_content.push_str("         </thead>\n");
@@ -353,7 +389,16 @@ fn build_cmyk_examples_html() -> String {
 
 fn build_cmyk_color_table_row(cyan: f64, magenta: f64, yellow: f64, key: f64) -> String {
     let mut cmyk_string = String::from("cmyk(");
-    cmyk_string.push_str(format!("{}%, {}%, {}%, {}%", cyan * 100.0, magenta * 100.0, yellow * 100.0, key * 100.0).as_str());
+    cmyk_string.push_str(
+        format!(
+            "{}%, {}%, {}%, {}%",
+            cyan * 100.0,
+            magenta * 100.0,
+            yellow * 100.0,
+            key * 100.0
+        )
+        .as_str(),
+    );
     cmyk_string.push_str(")");
     let cmyk_by_string = Color::new_string(cmyk_string.as_str()).unwrap();
 
@@ -595,14 +640,16 @@ fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> 
         row_content.push_str("                  <td class=\"center-text\">");
         match method {
             "css linear-gradient" => {
-                row_content.push_str("<div class=\"color-box\" style=\"background-image: linear-gradient(to right, ");
+                row_content.push_str(
+                    "<div class=\"color-box\" style=\"background-image: linear-gradient(to right, ",
+                );
                 row_content.push_str(start_color_str);
                 row_content.push_str(", ");
                 row_content.push_str(end_color_str);
                 row_content.push_str("); width: ");
                 row_content.push_str(color_bar_width.to_string().as_str());
                 row_content.push_str("px;\"></div>\n");
-            },
+            }
             "rust color.interpolate(color, interpolation)" => {
                 row_content.push_str("<div>");
                 for i in 0..color_bar_width {
@@ -613,7 +660,7 @@ fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> 
                     row_content.push_str(";\"></div>");
                 }
                 row_content.push_str("</div>");
-            },
+            }
             "rust color.interpolate_hsv(color, interpolation)" => {
                 row_content.push_str("<div>");
                 for i in 0..color_bar_width {
@@ -624,7 +671,7 @@ fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> 
                     row_content.push_str(";\"></div>");
                 }
                 row_content.push_str("</div>");
-            },
+            }
             "rust color.interpolate_hsl(color, interpolation)" => {
                 row_content.push_str("<div>");
                 for i in 0..color_bar_width {
@@ -635,7 +682,7 @@ fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> 
                     row_content.push_str(";\"></div>");
                 }
                 row_content.push_str("</div>");
-            },
+            }
             "rust color.interpolate_hwb(color, interpolation)" => {
                 row_content.push_str("<div>");
                 for i in 0..color_bar_width {
@@ -646,7 +693,7 @@ fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> 
                     row_content.push_str(";\"></div>");
                 }
                 row_content.push_str("</div>");
-            },
+            }
             "rust color.interpolate_lch(color, interpolation)" => {
                 row_content.push_str("<div>");
                 for i in 0..color_bar_width {
@@ -657,7 +704,7 @@ fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> 
                     row_content.push_str(";\"></div>");
                 }
                 row_content.push_str("</div>");
-            },
+            }
             _ => {}
         }
         row_content.push_str("</td>");
@@ -701,7 +748,8 @@ fn build_gray_examples_html() -> String {
     html_content.push_str("             <tr>\n");
     html_content.push_str("                 <th>value</th>\n");
     html_content.push_str("                 <th>by rust Color::new_gray(gray)</th>\n");
-    html_content.push_str("                 <th>by rust Color::new_string(\"gray(&lt;gray&gt;)\")</th>\n");
+    html_content
+        .push_str("                 <th>by rust Color::new_string(\"gray(&lt;gray&gt;)\")</th>\n");
     html_content.push_str("             </tr>\n");
     html_content.push_str("         </thead>\n");
     html_content.push_str("         <tbody>\n");

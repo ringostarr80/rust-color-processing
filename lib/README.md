@@ -22,6 +22,15 @@ extern crate color_processing;
 use color_processing::Color;
 
 fn main() {
+    let red = Color::new_string("red").unwrap();
+    assert_eq!("#FF0000", red.to_hex_string());
+
+    let green = Color::new_string("rgb(0, 255, 0)").unwrap();
+    assert_eq!("#00FF00", green.to_hex_string());
+
+    let blue = Color::new_rgb(0, 0, 255);
+    assert_eq!("rgb(0, 0, 255)", blue.to_rgb_string());
+
     // ...
 }
 ```

@@ -1,7 +1,10 @@
 [package]
 name = "html_visualizer"
+edition = "2018"
 version = "0.2.0"
 authors = ["Ringo Leese <webmaster@ringoleese.de>"]
+readme = "README.md"
+license = "CC0-1.0"
 
 [dependencies]
 color_processing = { path = "../lib" }

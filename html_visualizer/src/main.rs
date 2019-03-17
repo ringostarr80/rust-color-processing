@@ -60,6 +60,9 @@ fn build_index_html() -> std::io::Result<()> {
     index_html_content
         .push_str("               <a href=\"darken-brighten.html\">darken/brighten</a>");
     index_html_content.push_str("           </li>");
+    index_html_content.push_str("           <li>");
+    index_html_content.push_str("               <a href=\"temperature.html\">temperature</a>");
+    index_html_content.push_str("           </li>");
     index_html_content.push_str("       </ul>");
     index_html_content.push_str("   </body>\n");
     index_html_content.push_str("</html>\n");
@@ -106,6 +109,10 @@ fn build_index_html() -> std::io::Result<()> {
     let darken_brighten_html_content = build_darken_brighten_html();
     let mut darken_brighten_file = File::create("output/darken-brighten.html")?;
     darken_brighten_file.write_all(darken_brighten_html_content.as_bytes())?;
+
+    let temperature_html_content = build_temperature_html();
+    let mut temperature_file = File::create("output/temperature.html")?;
+    temperature_file.write_all(temperature_html_content.as_bytes())?;
 
     Ok(())
 }
@@ -1005,6 +1012,60 @@ fn build_darken_brighten_html() -> String {
     html_content.push_str(build_darken_brighten_table_row("yellow").as_str());
     html_content.push_str(build_darken_brighten_table_row("white").as_str());
     html_content.push_str(build_darken_brighten_table_row("black").as_str());
+    html_content.push_str("         </tbody>\n");
+    html_content.push_str("     </table>\n");
+    html_content.push_str(" </body>\n");
+    html_content.push_str("</html>\n");
+
+    return html_content;
+}
+
+fn build_temperature_html() -> String {
+    let mut html_content = String::new();
+    html_content.push_str("<!DOCTYPE html>\n");
+    html_content.push_str("<html>\n");
+    html_content.push_str(" <head>\n");
+    html_content.push_str("     <title>temperature</title>\n");
+    html_content.push_str("     <link rel=\"stylesheet\" href=\"index.css\">\n");
+    html_content.push_str(" </head>\n");
+    html_content.push_str(" <body>\n");
+    html_content.push_str("     <a href=\"index.html\">&lt; back</a>");
+    html_content.push_str("     <table class=\"center\">\n");
+    html_content.push_str("         <thead>\n");
+    html_content.push_str("             <tr>\n");
+    html_content.push_str("                 <th>temperature range</th>\n");
+    html_content.push_str("                 <th>visualization</th>\n");
+    html_content.push_str("             </tr>\n");
+    html_content.push_str("         </thead>\n");
+    html_content.push_str("         <tbody>\n");
+    html_content.push_str("             <tr>\n");
+    html_content.push_str("                 <td class=\"center-text\">0 - 30000</td>\n");
+    html_content.push_str("                 <td class=\"center-text\">\n");
+    html_content.push_str("                     <div>\n");
+    let mut temperature = 0;
+    let temperature_limit = 30000;
+    let temperature_step = temperature_limit / 256;
+    loop {
+        let color_temperature = Color::new_temperature(temperature);
+        let title_string = format!(
+            "temp: {}; hex: {}",
+            temperature,
+            color_temperature.to_hex_string()
+        );
+        html_content.push_str("<div class=\"color-bar\"");
+        html_content.push_str(format!(" title=\"{}\"", title_string).as_str());
+        html_content.push_str(" style=\"background-color: ");
+        html_content.push_str(color_temperature.to_hex_string().as_str());
+        html_content.push_str(";\"></div>");
+
+        temperature += temperature_step;
+        if temperature > temperature_limit {
+            break;
+        }
+    }
+    html_content.push_str("                     </div>\n");
+    html_content.push_str("                 </td>\n");
+    html_content.push_str("             </tr>\n");
     html_content.push_str("         </tbody>\n");
     html_content.push_str("     </table>\n");
     html_content.push_str(" </body>\n");

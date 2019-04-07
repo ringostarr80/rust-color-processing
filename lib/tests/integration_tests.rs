@@ -1533,29 +1533,29 @@ fn color_to_number() {
     let red = Color::new_string("#ff0000").unwrap();
     let half_transparent_black = Color::new_string("#00000080").unwrap();
 
-    assert_eq!(black.to_number(), -16777216);
+    assert_eq!(black.to_number(), -16_777_216);
     assert_eq!(black.to_number(), 0xff000000_u32 as i32);
-    assert_eq!(blue.to_number(), -16776961);
+    assert_eq!(blue.to_number(), -16_776_961);
     assert_eq!(blue.to_number(), 0xff0000ff_u32 as i32);
-    assert_eq!(green.to_number(), -16711936);
+    assert_eq!(green.to_number(), -16_711_936);
     assert_eq!(green.to_number(), 0xff00ff00_u32 as i32);
-    assert_eq!(red.to_number(), -65536);
+    assert_eq!(red.to_number(), -65_536);
     assert_eq!(red.to_number(), 0xffff0000_u32 as i32);
-    assert_eq!(half_transparent_black.to_number(), -2147483648);
+    assert_eq!(half_transparent_black.to_number(), -2_147_483_648);
     assert_eq!(half_transparent_black.to_number(), 0x80000000_u32 as i32);
 }
 
 #[test]
 fn color_from_number() {
-    let black_value = -16777216;
+    let black_value = -16_777_216;
     let black_value_hex = 0xff000000_u32 as i32;
-    let blue_value = -16776961;
+    let blue_value = -16_776_961;
     let blue_value_hex = 0xff0000ff_u32 as i32;
-    let green_value = -16711936;
+    let green_value = -16_711_936;
     let green_value_hex = 0xff00ff00_u32 as i32;
-    let red_value = -65536;
+    let red_value = -65_536;
     let red_value_hex = 0xffff0000_u32 as i32;
-    let half_transparent_black_value = -2147483648;
+    let half_transparent_black_value = -2_147_483_648;
     let half_transparent_black_value_hex = 0x80000000_u32 as i32;
     let black = Color::from(black_value);
     let black_from_hex = Color::from(black_value_hex);
@@ -1578,4 +1578,29 @@ fn color_from_number() {
     assert_eq!(red.to_hex_string(), "#FF0000");
     assert_eq!(half_transparent_black_from_hex.to_hex_string(), "#00000080");
     assert_eq!(half_transparent_black.to_hex_string(), "#00000080");
+}
+
+#[test]
+fn color_get_luminance() {
+    let white = Color::new_string("white").unwrap();
+    let aquamarine = Color::new_string("aquamarine").unwrap();
+    let hotpink = Color::new_string("hotpink").unwrap();
+    let darkslateblue = Color::new_string("darkslateblue").unwrap();
+    let black = Color::new_string("black").unwrap();
+
+    assert_eq!(white.get_luminance(), 1.0);
+    assert_eq!(aquamarine.get_luminance(), 0.8078549208338043);
+    assert_eq!(hotpink.get_luminance(), 0.3465843816971475);
+    assert_eq!(darkslateblue.get_luminance(), 0.06579284622798763);
+    assert_eq!(black.get_luminance(), 0.0);
+}
+
+#[test]
+fn color_get_contrast() {
+    let pink = Color::new_string("pink").unwrap();
+    let hotpink = Color::new_string("hotpink").unwrap();
+    let purple = Color::new_string("purple").unwrap();
+
+    assert_eq!(pink.get_contrast(hotpink), 1.7214765344592284);
+    assert_eq!(pink.get_contrast(purple), 6.124225406859997);
 }

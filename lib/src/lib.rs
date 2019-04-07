@@ -1672,9 +1672,9 @@ impl Color {
     /// ```
     /// use color_processing::Color;
     ///
-    /// let candle_light = Color::new_temperature(2000);
-    /// let sunset = Color::new_temperature(3500);
-    /// let daylight = Color::new_temperature(6500);
+    /// let candle_light = Color::new_temperature(2_000);
+    /// let sunset = Color::new_temperature(3_500);
+    /// let daylight = Color::new_temperature(6_500);
     ///
     /// assert_eq!(candle_light.to_hex_string(), "#FF8B14");
     /// assert_eq!(sunset.to_hex_string(), "#FFC38A");
@@ -2073,7 +2073,7 @@ impl Color {
         let lab = self.get_laba();
         let mut c = (lab.1 * lab.1 + lab.2 * lab.2).sqrt();
         let mut h = (lab.2.atan2(lab.1) * Color::RAD2DEG + 360.0) % 360.0;
-        if (c * 10000.0).round() == 0.0 {
+        if (c * 10_000.0).round() == 0.0 {
             h = std::f64::NAN; // NaN
         }
 
@@ -2494,6 +2494,64 @@ impl Color {
         Color::new_hsla(hsla.0, hsla.1, 1.0 - hsla.2, hsla.3)
     }
 
+    fn luminance_x(x: u8) -> f64 {
+        let x = x as f64 / 255.0;
+        if x <= 0.03928 {
+            x / 12.92
+        } else {
+            ((x + 0.055) / 1.055).powf(2.4)
+        }
+    }
+
+    /// Gets the relative luminance of the Color as defined in [WCAG 2.0](https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef)
+    ///
+    /// # Example
+    /// ```
+    /// use color_processing::Color;
+    ///
+    /// let white = Color::new_string("white").unwrap();
+    /// let aquamarine = Color::new_string("aquamarine").unwrap();
+    /// let hotpink = Color::new_string("hotpink").unwrap();
+    /// let darkslateblue = Color::new_string("darkslateblue").unwrap();
+    /// let black = Color::new_string("black").unwrap();
+    ///
+    /// assert_eq!(white.get_luminance(), 1.0);
+    /// assert_eq!(aquamarine.get_luminance(), 0.8078549208338043);
+    /// assert_eq!(hotpink.get_luminance(), 0.3465843816971475);
+    /// assert_eq!(darkslateblue.get_luminance(), 0.06579284622798763);
+    /// assert_eq!(black.get_luminance(), 0.0);
+    /// ```
+    pub fn get_luminance(&self) -> f64 {
+        let r = Self::luminance_x(self.red);
+        let g = Self::luminance_x(self.green);
+        let b = Self::luminance_x(self.blue);
+        0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+
+    /// Computes the [WCAG contrast ratio](https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef) between two colors. \
+    /// A minimum contrast of 4.5:1 [is recommended](https://www.w3.org/TR/WCAG20-TECHS/G18.html) to ensure that text is still readable against a background color.
+    ///
+    /// # Example
+    /// ```
+    /// use color_processing::Color;
+    ///
+    /// let pink = Color::new_string("pink").unwrap();
+    /// let hotpink = Color::new_string("hotpink").unwrap();
+    /// let purple = Color::new_string("purple").unwrap();
+    ///
+    /// assert_eq!(pink.get_contrast(hotpink), 1.7214765344592284);
+    /// assert_eq!(pink.get_contrast(purple), 6.124225406859997);
+    /// ```
+    pub fn get_contrast(&self, color: Color) -> f64 {
+        let l1 = self.get_luminance();
+        let l2 = color.get_luminance();
+        if l1 > l2 {
+            (l1 + 0.05) / (l2 + 0.05)
+        } else {
+            (l2 + 0.05) / (l1 + 0.05)
+        }
+    }
+
     /// Gets a formatted cmyk String of the color as used in css.
     ///
     /// # Example
@@ -2722,9 +2780,9 @@ impl Color {
     ///
     /// // differences in the conversion from temperature to color comes,  
     /// // because of rounding of the red, green and blue values.
-    /// assert_eq!(2000, candle_light.to_temperature());
-    /// assert_eq!(3486, sunset.to_temperature());
-    /// assert_eq!(6473, daylight.to_temperature());
+    /// assert_eq!(2_000, candle_light.to_temperature());
+    /// assert_eq!(3_486, sunset.to_temperature());
+    /// assert_eq!(6_473, daylight.to_temperature());
     /// ```
     pub fn to_temperature(&self) -> u16 {
         let r = self.red as f64;

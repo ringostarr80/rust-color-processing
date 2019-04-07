@@ -19,6 +19,11 @@ fn main() {
     build_index_html().is_ok();
 }
 
+fn round_with_precision(number: f64, precision: u8) -> f64 {
+    let multiplier = 10_f64.powi(precision as i32);
+    (number * multiplier).round() / multiplier
+}
+
 fn build_index_html() -> std::io::Result<()> {
     let mut index_html_content = String::new();
     index_html_content.push_str("<!DOCTYPE html>\n");
@@ -62,6 +67,9 @@ fn build_index_html() -> std::io::Result<()> {
     index_html_content.push_str("           </li>");
     index_html_content.push_str("           <li>");
     index_html_content.push_str("               <a href=\"temperature.html\">temperature</a>");
+    index_html_content.push_str("           </li>");
+    index_html_content.push_str("           <li>");
+    index_html_content.push_str("               <a href=\"contrast.html\">contrast</a>");
     index_html_content.push_str("           </li>");
     index_html_content.push_str("       </ul>");
     index_html_content.push_str("   </body>\n");
@@ -113,6 +121,10 @@ fn build_index_html() -> std::io::Result<()> {
     let temperature_html_content = build_temperature_html();
     let mut temperature_file = File::create("output/temperature.html")?;
     temperature_file.write_all(temperature_html_content.as_bytes())?;
+
+    let contrast_html_content = build_contrast_html();
+    let mut contrast_file = File::create("output/contrast.html")?;
+    contrast_file.write_all(contrast_html_content.as_bytes())?;
 
     Ok(())
 }
@@ -630,6 +642,41 @@ fn build_darken_brighten_table_row(base_color_str: &str) -> String {
     row_content
 }
 
+fn build_contrast_table_row(color_1_str: &str, color_2_str: &str) -> String {
+    let color_1 = Color::new_string(color_1_str).unwrap();
+    let color_2 = Color::new_string(color_2_str).unwrap();
+    let contrast = color_1.get_contrast(color_2);
+
+    let mut row_content = String::new();
+    row_content.push_str("              <tr>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\"");
+    row_content.push_str(
+        format!(
+            " title=\"{}\" style=\"background-color: {};\"",
+            color_1_str,
+            color_1.to_hex_string()
+        )
+        .as_str(),
+    );
+    row_content.push_str("></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div class=\"color-box\"");
+    row_content.push_str(
+        format!(
+            " title=\"{}\" style=\"background-color: {};\"",
+            color_2_str,
+            color_2.to_hex_string()
+        )
+        .as_str(),
+    );
+    row_content.push_str("></div></td>\n");
+    row_content.push_str("                  <td class=\"center-text\"><div>");
+    row_content.push_str(format!("{}", round_with_precision(contrast, 1)).as_str());
+    row_content.push_str("</div></td>\n");
+    row_content.push_str("              </tr>\n");
+
+    row_content
+}
+
 fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> String {
     let start_color = Color::new_string(start_color_str).unwrap();
     let end_color = Color::new_string(end_color_str).unwrap();
@@ -1043,7 +1090,7 @@ fn build_temperature_html() -> String {
     html_content.push_str("                 <td class=\"center-text\">\n");
     html_content.push_str("                     <div>\n");
     let mut temperature = 0;
-    let temperature_limit = 30000;
+    let temperature_limit = 30_000;
     let temperature_step = temperature_limit / 256;
     loop {
         let color_temperature = Color::new_temperature(temperature);
@@ -1066,6 +1113,86 @@ fn build_temperature_html() -> String {
     html_content.push_str("                     </div>\n");
     html_content.push_str("                 </td>\n");
     html_content.push_str("             </tr>\n");
+    html_content.push_str("         </tbody>\n");
+    html_content.push_str("     </table>\n");
+    html_content.push_str(" </body>\n");
+    html_content.push_str("</html>\n");
+
+    return html_content;
+}
+
+fn build_contrast_html() -> String {
+    let mut html_content = String::new();
+    html_content.push_str("<!DOCTYPE html>\n");
+    html_content.push_str("<html>\n");
+    html_content.push_str(" <head>\n");
+    html_content.push_str("     <title>contrast</title>\n");
+    html_content.push_str("     <link rel=\"stylesheet\" href=\"index.css\">\n");
+    html_content.push_str(" </head>\n");
+    html_content.push_str(" <body>\n");
+    html_content.push_str("     <a href=\"index.html\">&lt; back</a>");
+    html_content.push_str("     <table class=\"center\">\n");
+    html_content.push_str("         <thead>\n");
+    html_content.push_str("             <tr>\n");
+    html_content.push_str("                 <th>color 1</th>\n");
+    html_content.push_str("                 <th>color 2</th>\n");
+    html_content.push_str("                 <th>contrast</th>\n");
+    html_content.push_str("             </tr>\n");
+    html_content.push_str("         </thead>\n");
+    html_content.push_str("         <tbody>\n");
+    html_content.push_str(build_contrast_table_row("white", "yellow").as_str());
+    html_content.push_str(build_contrast_table_row("white", "cyan").as_str());
+    html_content.push_str(build_contrast_table_row("white", "magenta").as_str());
+    html_content.push_str(build_contrast_table_row("white", "red").as_str());
+    html_content.push_str(build_contrast_table_row("white", "green").as_str());
+    html_content.push_str(build_contrast_table_row("white", "blue").as_str());
+    html_content.push_str(build_contrast_table_row("white", "gray").as_str());
+    html_content.push_str(build_contrast_table_row("white", "brown").as_str());
+    html_content.push_str(build_contrast_table_row("white", "black").as_str());
+
+    html_content.push_str(build_contrast_table_row("yellow", "cyan").as_str());
+    html_content.push_str(build_contrast_table_row("yellow", "magenta").as_str());
+    html_content.push_str(build_contrast_table_row("yellow", "red").as_str());
+    html_content.push_str(build_contrast_table_row("yellow", "green").as_str());
+    html_content.push_str(build_contrast_table_row("yellow", "blue").as_str());
+    html_content.push_str(build_contrast_table_row("yellow", "gray").as_str());
+    html_content.push_str(build_contrast_table_row("yellow", "brown").as_str());
+    html_content.push_str(build_contrast_table_row("yellow", "black").as_str());
+
+    html_content.push_str(build_contrast_table_row("cyan", "magenta").as_str());
+    html_content.push_str(build_contrast_table_row("cyan", "red").as_str());
+    html_content.push_str(build_contrast_table_row("cyan", "green").as_str());
+    html_content.push_str(build_contrast_table_row("cyan", "blue").as_str());
+    html_content.push_str(build_contrast_table_row("cyan", "gray").as_str());
+    html_content.push_str(build_contrast_table_row("cyan", "brown").as_str());
+    html_content.push_str(build_contrast_table_row("cyan", "black").as_str());
+
+    html_content.push_str(build_contrast_table_row("magenta", "red").as_str());
+    html_content.push_str(build_contrast_table_row("magenta", "green").as_str());
+    html_content.push_str(build_contrast_table_row("magenta", "blue").as_str());
+    html_content.push_str(build_contrast_table_row("magenta", "gray").as_str());
+    html_content.push_str(build_contrast_table_row("magenta", "brown").as_str());
+    html_content.push_str(build_contrast_table_row("magenta", "black").as_str());
+
+    html_content.push_str(build_contrast_table_row("red", "green").as_str());
+    html_content.push_str(build_contrast_table_row("red", "blue").as_str());
+    html_content.push_str(build_contrast_table_row("red", "gray").as_str());
+    html_content.push_str(build_contrast_table_row("red", "brown").as_str());
+    html_content.push_str(build_contrast_table_row("red", "black").as_str());
+
+    html_content.push_str(build_contrast_table_row("green", "blue").as_str());
+    html_content.push_str(build_contrast_table_row("green", "gray").as_str());
+    html_content.push_str(build_contrast_table_row("green", "brown").as_str());
+    html_content.push_str(build_contrast_table_row("green", "black").as_str());
+
+    html_content.push_str(build_contrast_table_row("blue", "gray").as_str());
+    html_content.push_str(build_contrast_table_row("blue", "brown").as_str());
+    html_content.push_str(build_contrast_table_row("blue", "black").as_str());
+
+    html_content.push_str(build_contrast_table_row("gray", "brown").as_str());
+    html_content.push_str(build_contrast_table_row("gray", "black").as_str());
+
+    html_content.push_str(build_contrast_table_row("brown", "black").as_str());
     html_content.push_str("         </tbody>\n");
     html_content.push_str("     </table>\n");
     html_content.push_str(" </body>\n");

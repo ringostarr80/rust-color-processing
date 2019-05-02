@@ -71,7 +71,7 @@ fn round_with_precision(number: f64, precision: u8) -> f64 {
     (number * multiplier).round() / multiplier
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct Color {
     pub red: u8,
     pub green: u8,

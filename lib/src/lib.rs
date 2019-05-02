@@ -71,7 +71,7 @@ fn round_with_precision(number: f64, precision: u8) -> f64 {
     (number * multiplier).round() / multiplier
 }
 
-#[derive(Copy, Clone, Default)]
+#[derive(Copy, Clone)]
 pub struct Color {
     pub red: u8,
     pub green: u8,
@@ -3646,6 +3646,12 @@ impl Color {
         }
 
         t / Color::LAB_CONSTANT_T2 + Color::LAB_CONSTANT_T0
+    }
+}
+
+impl Default for Color {
+    fn default() -> Self {
+        Color::new()
     }
 }
 

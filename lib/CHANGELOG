@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.1] - 2019-05-02
+### Added
+- Default-trait
+
 ## [0.3.0] - 2019-04-07
 ### Added
 - new methods: to_temperature(&self) -> u16 and new_temperature(u16) -> Color

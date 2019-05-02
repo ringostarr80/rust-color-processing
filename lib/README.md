@@ -11,7 +11,7 @@ To use `color_processing`, first add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-color_processing = "0.2"
+color_processing = "0.3"
 ```
 
 Next, add this to your crate:

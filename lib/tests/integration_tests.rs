@@ -12,6 +12,15 @@ fn color_new() {
 }
 
 #[test]
+fn color_default() {
+    let default_color: Color = Default::default();
+    assert_eq!(default_color.alpha, 255);
+    assert_eq!(default_color.red, 0);
+    assert_eq!(default_color.green, 0);
+    assert_eq!(default_color.blue, 0);
+}
+
+#[test]
 fn color_new_rgb() {
     let red = Color::new_rgb(255, 0, 0);
     assert_eq!(red.red, 255);

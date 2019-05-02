@@ -3649,6 +3649,12 @@ impl Color {
     }
 }
 
+impl Default for Color {
+    fn default() -> Self {
+        Color::new()
+    }
+}
+
 impl From<Color> for i32 {
     /// Converts a Color-struct into a i32 number.
     ///

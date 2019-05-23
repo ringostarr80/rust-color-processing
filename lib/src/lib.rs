@@ -90,6 +90,7 @@ pub struct Color {
     pub red: u8,
     pub green: u8,
     pub blue: u8,
+    #[cfg_attr(feature = "palette", palette_alpha)]
     pub alpha: u8,
 }
 

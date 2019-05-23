@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-    "lib",
+	"lib",
 	"html_visualizer"
 ]

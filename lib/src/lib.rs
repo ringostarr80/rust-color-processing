@@ -62,6 +62,18 @@ extern crate lazy_static;
 
 extern crate regex;
 
+#[cfg(feature = "palette")]
+#[macro_use]
+extern crate palette;
+
+#[cfg(feature = "palette")]
+use palette::{
+    IntoColor, LinSrgba, Srgb,
+    rgb::{Rgb, RgbSpace},
+    encoding::Linear,
+    white_point::D65,
+};
+
 use self::regex::Regex;
 use std::f64::consts::PI;
 use std::str::FromStr;
@@ -71,7 +83,9 @@ fn round_with_precision(number: f64, precision: u8) -> f64 {
     (number * multiplier).round() / multiplier
 }
 
-#[derive(Copy, Clone)]
+#[cfg_attr(feature = "palette", derive(IntoColor))]
+#[cfg_attr(feature = "palette", palette_manual_into(Rgb = "into_palette_rgb"))]
+#[derive(Copy, Clone, PartialEq)]
 pub struct Color {
     pub red: u8,
     pub green: u8,
@@ -3646,6 +3660,16 @@ impl Color {
         }
 
         t / Color::LAB_CONSTANT_T2 + Color::LAB_CONSTANT_T0
+    }
+
+    #[cfg(feature = "palette")]
+    fn into_palette_rgb<S>(self) -> Rgb<Linear<S>, f32>
+    where
+        S: RgbSpace<WhitePoint = D65>,
+    {
+        Srgb::new(self.red, self.green, self.blue)
+                    .into_format()
+                    .into_rgb()
     }
 }
 

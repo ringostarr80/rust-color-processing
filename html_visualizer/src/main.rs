@@ -16,7 +16,7 @@ fn main() {
     if !output_directory_ok {
         return;
     }
-    build_index_html().is_ok();
+    build_index_html().expect("unable to build index.html or subsequent files.");
 }
 
 fn round_with_precision(number: f64, precision: u8) -> f64 {
@@ -645,7 +645,7 @@ fn build_darken_brighten_table_row(base_color_str: &str) -> String {
 fn build_contrast_table_row(color_1_str: &str, color_2_str: &str) -> String {
     let color_1 = Color::new_string(color_1_str).unwrap();
     let color_2 = Color::new_string(color_2_str).unwrap();
-    let contrast = color_1.get_contrast(color_2);
+    let contrast = color_1.get_contrast(color_2.clone());
 
     let mut row_content = String::new();
     row_content.push_str("              <tr>\n");
@@ -664,7 +664,7 @@ fn build_contrast_table_row(color_1_str: &str, color_2_str: &str) -> String {
         format!(
             " title=\"{}\" style=\"background-color: {};\"",
             color_2_str,
-            color_2.to_hex_string()
+            color_2.clone().to_hex_string()
         )
         .as_str(),
     );
@@ -708,7 +708,7 @@ fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> 
                 row_content.push_str("<div>");
                 for i in 0..color_bar_width {
                     let interpolation = i as f64 / color_bar_width as f64;
-                    let interpolated_color = start_color.interpolate(end_color, interpolation);
+                    let interpolated_color = start_color.interpolate(end_color.clone(), interpolation);
                     row_content.push_str("<div class=\"color-bar\" style=\"background-color: ");
                     row_content.push_str(interpolated_color.to_hex_string().as_str());
                     row_content.push_str(";\"></div>");
@@ -719,7 +719,7 @@ fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> 
                 row_content.push_str("<div>");
                 for i in 0..color_bar_width {
                     let interpolation = i as f64 / color_bar_width as f64;
-                    let interpolated_color = start_color.interpolate_hsv(end_color, interpolation);
+                    let interpolated_color = start_color.interpolate_hsv(end_color.clone(), interpolation);
                     row_content.push_str("<div class=\"color-bar\" style=\"background-color: ");
                     row_content.push_str(interpolated_color.to_hex_string().as_str());
                     row_content.push_str(";\"></div>");
@@ -730,7 +730,7 @@ fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> 
                 row_content.push_str("<div>");
                 for i in 0..color_bar_width {
                     let interpolation = i as f64 / color_bar_width as f64;
-                    let interpolated_color = start_color.interpolate_hsl(end_color, interpolation);
+                    let interpolated_color = start_color.interpolate_hsl(end_color.clone(), interpolation);
                     row_content.push_str("<div class=\"color-bar\" style=\"background-color: ");
                     row_content.push_str(interpolated_color.to_hex_string().as_str());
                     row_content.push_str(";\"></div>");
@@ -741,7 +741,7 @@ fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> 
                 row_content.push_str("<div>");
                 for i in 0..color_bar_width {
                     let interpolation = i as f64 / color_bar_width as f64;
-                    let interpolated_color = start_color.interpolate_hwb(end_color, interpolation);
+                    let interpolated_color = start_color.interpolate_hwb(end_color.clone(), interpolation);
                     row_content.push_str("<div class=\"color-bar\" style=\"background-color: ");
                     row_content.push_str(interpolated_color.to_hex_string().as_str());
                     row_content.push_str(";\"></div>");
@@ -752,7 +752,7 @@ fn build_interpolation_table_row(start_color_str: &str, end_color_str: &str) -> 
                 row_content.push_str("<div>");
                 for i in 0..color_bar_width {
                     let interpolation = i as f64 / color_bar_width as f64;
-                    let interpolated_color = start_color.interpolate_lch(end_color, interpolation);
+                    let interpolated_color = start_color.interpolate_lch(end_color.clone(), interpolation);
                     row_content.push_str("<div class=\"color-bar\" style=\"background-color: ");
                     row_content.push_str(interpolated_color.to_hex_string().as_str());
                     row_content.push_str(";\"></div>");

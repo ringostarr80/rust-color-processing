@@ -1501,10 +1501,10 @@ fn color_interpolate_lch() {
     let red = Color::new_string("rgb(255, 0, 0)").unwrap();
     let green = Color::new_string("rgb(0, 255, 0)").unwrap();
 
-    let interpolate_0 = red.interpolate_lch(green, 0.0);
-    let interpolate_0_1 = red.interpolate_lch(green, 0.1);
-    let interpolate_0_5 = red.interpolate_lch(green, 0.5);
-    let interpolate_1 = red.interpolate_lch(green, 1.0);
+    let interpolate_0 = red.interpolate_lch(green.clone(), 0.0);
+    let interpolate_0_1 = red.interpolate_lch(green.clone(), 0.1);
+    let interpolate_0_5 = red.interpolate_lch(green.clone(), 0.5);
+    let interpolate_1 = red.interpolate_lch(green.clone(), 1.0);
 
     assert_eq!(interpolate_0.to_hex_string(), "#FF0000");
     assert_eq!(interpolate_0_1.to_hex_string(), "#FE4000");
@@ -1612,4 +1612,13 @@ fn color_get_contrast() {
 
     assert_eq!(pink.get_contrast(hotpink), 1.7214765344592284);
     assert_eq!(pink.get_contrast(purple), 6.124225406859997);
+}
+
+#[test]
+fn color_get_original_string() {
+    let red = Color::new_string("red").unwrap();
+    let green_hex = Color::new_string("#00ff00").unwrap();
+
+    assert_eq!("red", red.get_original_string());
+    assert_eq!("#00ff00", green_hex.get_original_string());
 }

@@ -71,12 +71,13 @@ fn round_with_precision(number: f64, precision: u8) -> f64 {
     (number * multiplier).round() / multiplier
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct Color {
     pub red: u8,
     pub green: u8,
     pub blue: u8,
     pub alpha: u8,
+    original_string: String
 }
 
 impl Color {
@@ -113,6 +114,7 @@ impl Color {
             green: 0,
             blue: 0,
             alpha: 255,
+            original_string: String::new(),
         }
     }
 
@@ -159,847 +161,848 @@ impl Color {
                 red: 0xF0,
                 green: 0xF8,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::AntiqueWhite => Color {
                 red: 0xFA,
                 green: 0xEB,
                 blue: 0xD7,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Aqua => Color {
                 red: 0x00,
                 green: 0xFF,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::AquaMarine => Color {
                 red: 0x7F,
                 green: 0xFF,
                 blue: 0xD4,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Azure => Color {
                 red: 0xF0,
                 green: 0xFF,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Beige => Color {
                 red: 0xF5,
                 green: 0xF5,
                 blue: 0xDC,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Bisque => Color {
                 red: 0xFF,
                 green: 0xE4,
                 blue: 0xC4,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Black => Color {
                 red: 0x00,
                 green: 0x00,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::BlanchedAlmond => Color {
                 red: 0xFF,
                 green: 0xEB,
                 blue: 0xCD,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Blue => Color {
                 red: 0x00,
                 green: 0x00,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::BlueViolet => Color {
                 red: 0x8A,
                 green: 0x2B,
                 blue: 0xE2,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Brown => Color {
                 red: 0xA5,
                 green: 0x2A,
                 blue: 0x2A,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::BurlyWood => Color {
                 red: 0xDE,
                 green: 0xB8,
                 blue: 0x87,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::CadetBlue => Color {
                 red: 0x5F,
                 green: 0x9E,
                 blue: 0xA0,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Chartreuse => Color {
                 red: 0x7F,
                 green: 0xFF,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Chocolate => Color {
                 red: 0xD2,
                 green: 0x69,
                 blue: 0x1E,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Coral => Color {
                 red: 0xFF,
                 green: 0x7F,
                 blue: 0x50,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::CornflowerBlue => Color {
                 red: 0x64,
                 green: 0x95,
                 blue: 0xED,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Cornsilk => Color {
                 red: 0xFF,
                 green: 0xF8,
                 blue: 0xDC,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Crimson => Color {
                 red: 0xDC,
                 green: 0x14,
                 blue: 0x3C,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Cyan => Color {
                 red: 0x00,
                 green: 0xFF,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkBlue => Color {
                 red: 0x00,
                 green: 0x00,
                 blue: 0x8B,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkCyan => Color {
                 red: 0x00,
                 green: 0x8B,
                 blue: 0x8B,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkGoldenrod => Color {
                 red: 0xB8,
                 green: 0x86,
                 blue: 0x0B,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkGray => Color {
                 red: 0xA9,
                 green: 0xA9,
                 blue: 0xA9,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkGreen => Color {
                 red: 0x00,
                 green: 0x64,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkKhaki => Color {
                 red: 0xBD,
                 green: 0xB7,
                 blue: 0x6B,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkMagenta => Color {
                 red: 0x8B,
                 green: 0x00,
                 blue: 0x8B,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkOliveGreen => Color {
                 red: 0x55,
                 green: 0x6B,
                 blue: 0x2F,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkOrange => Color {
                 red: 0xFF,
                 green: 0x8C,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkOrchid => Color {
                 red: 0x99,
                 green: 0x32,
                 blue: 0xCC,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkRed => Color {
                 red: 0x8B,
                 green: 0x00,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkSalmon => Color {
                 red: 0xE9,
                 green: 0x96,
                 blue: 0x7A,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkSeaGreen => Color {
                 red: 0x8F,
                 green: 0xBC,
                 blue: 0x8B,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkSlateBlue => Color {
                 red: 0x48,
                 green: 0x3D,
                 blue: 0x8B,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkSlateGray => Color {
                 red: 0x2F,
                 green: 0x4F,
                 blue: 0x4F,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkTurquoise => Color {
                 red: 0x00,
                 green: 0xCE,
                 blue: 0xD1,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DarkViolet => Color {
                 red: 0x94,
                 green: 0x00,
                 blue: 0xD3,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DeepPink => Color {
                 red: 0xFF,
                 green: 0x14,
                 blue: 0x93,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DeepSkyBlue => Color {
                 red: 0x00,
                 green: 0xBF,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DimGray => Color {
                 red: 0x69,
                 green: 0x69,
                 blue: 0x69,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::DodgerBlue => Color {
                 red: 0x1E,
                 green: 0x90,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Firebrick => Color {
                 red: 0xB2,
                 green: 0x22,
                 blue: 0x22,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::FloralWhite => Color {
                 red: 0xFF,
                 green: 0xFA,
                 blue: 0xF0,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::ForestGreen => Color {
                 red: 0x22,
                 green: 0x8B,
                 blue: 0x22,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Fuchsia => Color {
                 red: 0xFF,
                 green: 0x00,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Gainsboro => Color {
                 red: 0xDC,
                 green: 0xDC,
                 blue: 0xDC,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::GhostWhite => Color {
                 red: 0xF8,
                 green: 0xF8,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Gold => Color {
                 red: 0xFF,
                 green: 0xD7,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Goldenrod => Color {
                 red: 0xDA,
                 green: 0xA5,
                 blue: 0x20,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Gray => Color {
                 red: 0x80,
                 green: 0x80,
                 blue: 0x80,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Green => Color {
                 red: 0x00,
                 green: 0x80,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::GreenYellow => Color {
                 red: 0xAD,
                 green: 0xFF,
                 blue: 0x2F,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Honeydew => Color {
                 red: 0xF0,
                 green: 0xFF,
                 blue: 0xF0,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::HotPink => Color {
                 red: 0xFF,
                 green: 0x69,
                 blue: 0xB4,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::IndianRed => Color {
                 red: 0xCD,
                 green: 0x5C,
                 blue: 0x5C,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Indigo => Color {
                 red: 0x4B,
                 green: 0x00,
                 blue: 0x82,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Ivory => Color {
                 red: 0xFF,
                 green: 0xFF,
                 blue: 0xF0,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Khaki => Color {
                 red: 0xF0,
                 green: 0xE6,
                 blue: 0x8C,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Lavender => Color {
                 red: 0xE6,
                 green: 0xE6,
                 blue: 0xFA,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LavenderBlush => Color {
                 red: 0xFF,
                 green: 0xF0,
                 blue: 0xF5,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LawnGreen => Color {
                 red: 0x7C,
                 green: 0xFC,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LemonChiffon => Color {
                 red: 0xFF,
                 green: 0xFA,
                 blue: 0xCD,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightBlue => Color {
                 red: 0xAD,
                 green: 0xD8,
                 blue: 0xE6,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightCoral => Color {
                 red: 0xF0,
                 green: 0x80,
                 blue: 0x80,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightCyan => Color {
                 red: 0xE0,
                 green: 0xFF,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightGoldenrodYellow => Color {
                 red: 0xFA,
                 green: 0xFA,
                 blue: 0xD2,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightGray => Color {
                 red: 0xD3,
                 green: 0xD3,
                 blue: 0xD3,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightGreen => Color {
                 red: 0x90,
                 green: 0xEE,
                 blue: 0x90,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightPink => Color {
                 red: 0xFF,
                 green: 0xB6,
                 blue: 0xC1,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightSalmon => Color {
                 red: 0xFF,
                 green: 0xA0,
                 blue: 0x7A,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightSeaGreen => Color {
                 red: 0x20,
                 green: 0xB2,
                 blue: 0xAA,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightSkyBlue => Color {
                 red: 0x87,
                 green: 0xCE,
                 blue: 0xFA,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightSlateGray => Color {
                 red: 0x77,
                 green: 0x88,
                 blue: 0x99,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightSteelBlue => Color {
                 red: 0xB0,
                 green: 0xC4,
                 blue: 0xDE,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LightYellow => Color {
                 red: 0xFF,
                 green: 0xFF,
                 blue: 0xE0,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Lime => Color {
                 red: 0x00,
                 green: 0xFF,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::LimeGreen => Color {
                 red: 0x32,
                 green: 0xCD,
                 blue: 0x32,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Linen => Color {
                 red: 0xFA,
                 green: 0xF0,
                 blue: 0xE6,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Magenta => Color {
                 red: 0xFF,
                 green: 0x00,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Maroon => Color {
                 red: 0x80,
                 green: 0x00,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MediumAquaMarine => Color {
                 red: 0x66,
                 green: 0xCD,
                 blue: 0xAA,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MediumBlue => Color {
                 red: 0x00,
                 green: 0x00,
                 blue: 0xCD,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MediumOrchid => Color {
                 red: 0xBA,
                 green: 0x55,
                 blue: 0xD3,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MediumPurple => Color {
                 red: 0x93,
                 green: 0x70,
                 blue: 0xDB,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MediumSeaGreen => Color {
                 red: 0x3C,
                 green: 0xB3,
                 blue: 0x71,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MediumSlateBlue => Color {
                 red: 0x7B,
                 green: 0x68,
                 blue: 0xEE,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MediumSpringGreen => Color {
                 red: 0x00,
                 green: 0xFA,
                 blue: 0x9A,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MediumTurquoise => Color {
                 red: 0x48,
                 green: 0xD1,
                 blue: 0xCC,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MediumVioletRed => Color {
                 red: 0xC7,
                 green: 0x15,
                 blue: 0x85,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MidnightBlue => Color {
                 red: 0x19,
                 green: 0x19,
                 blue: 0x70,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MintCream => Color {
                 red: 0xF5,
                 green: 0xFF,
                 blue: 0xFA,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::MistyRose => Color {
                 red: 0xFF,
                 green: 0xE4,
                 blue: 0xE1,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Moccasin => Color {
                 red: 0xFF,
                 green: 0xE4,
                 blue: 0xB5,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::NavajoWhite => Color {
                 red: 0xFF,
                 green: 0xDE,
                 blue: 0xAD,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Navy => Color {
                 red: 0x00,
                 green: 0x00,
                 blue: 0x80,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::OldLace => Color {
                 red: 0xFD,
                 green: 0xF5,
                 blue: 0xE6,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Olive => Color {
                 red: 0x80,
                 green: 0x80,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::OliveDrab => Color {
                 red: 0x6B,
                 green: 0x8E,
                 blue: 0x23,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Orange => Color {
                 red: 0xFF,
                 green: 0xA5,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::OrangeRed => Color {
                 red: 0xFF,
                 green: 0x45,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Orchid => Color {
                 red: 0xDA,
                 green: 0x70,
                 blue: 0xD6,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::PaleGoldenrod => Color {
                 red: 0xEE,
                 green: 0xE8,
                 blue: 0xAA,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::PaleGreen => Color {
                 red: 0x98,
                 green: 0xFB,
                 blue: 0x98,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::PaleTurquoise => Color {
                 red: 0xAF,
                 green: 0xEE,
                 blue: 0xEE,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::PaleVioletRed => Color {
                 red: 0xDB,
                 green: 0x70,
                 blue: 0x93,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::PapayaWhip => Color {
                 red: 0xFF,
                 green: 0xEF,
                 blue: 0xD5,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::PeachPuff => Color {
                 red: 0xFF,
                 green: 0xDA,
                 blue: 0xB9,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Peru => Color {
                 red: 0xCD,
                 green: 0x85,
                 blue: 0x3F,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Pink => Color {
                 red: 0xFF,
                 green: 0xC0,
                 blue: 0xCB,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Plum => Color {
                 red: 0xDD,
                 green: 0xA0,
                 blue: 0xDD,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::PowderBlue => Color {
                 red: 0xB0,
                 green: 0xE0,
                 blue: 0xE6,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Purple => Color {
                 red: 0x80,
                 green: 0x00,
                 blue: 0x80,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Red => Color {
                 red: 0xFF,
                 green: 0x00,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::RosyBrown => Color {
                 red: 0xBC,
                 green: 0x8F,
                 blue: 0x8F,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::RoyalBlue => Color {
                 red: 0x41,
                 green: 0x69,
                 blue: 0xE1,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::SaddleBrown => Color {
                 red: 0x8B,
                 green: 0x45,
                 blue: 0x13,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Salmon => Color {
                 red: 0xFA,
                 green: 0x80,
                 blue: 0x72,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::SandyBrown => Color {
                 red: 0xF4,
                 green: 0xA4,
                 blue: 0x60,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::SeaGreen => Color {
                 red: 0x2E,
                 green: 0x8B,
                 blue: 0x57,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::SeaShell => Color {
                 red: 0xFF,
                 green: 0xF5,
                 blue: 0xEE,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Sienna => Color {
                 red: 0xA0,
                 green: 0x52,
                 blue: 0x2D,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Silver => Color {
                 red: 0xC0,
                 green: 0xC0,
                 blue: 0xC0,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::SkyBlue => Color {
                 red: 0x87,
                 green: 0xCE,
                 blue: 0xEB,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::SlateBlue => Color {
                 red: 0x6A,
                 green: 0x5A,
                 blue: 0xCD,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::SlateGray => Color {
                 red: 0x70,
                 green: 0x80,
                 blue: 0x90,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Snow => Color {
                 red: 0xFF,
                 green: 0xFA,
                 blue: 0xFA,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::SpringGreen => Color {
                 red: 0x00,
                 green: 0xFF,
                 blue: 0x7F,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::SteelBlue => Color {
                 red: 0x46,
                 green: 0x82,
                 blue: 0xB4,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Tan => Color {
                 red: 0xD2,
                 green: 0xB4,
                 blue: 0x8C,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Teal => Color {
                 red: 0x00,
                 green: 0x80,
                 blue: 0x80,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Thistle => Color {
                 red: 0xD8,
                 green: 0xBF,
                 blue: 0xD8,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Tomato => Color {
                 red: 0xFF,
                 green: 0x63,
                 blue: 0x47,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Transparent => Color {
                 red: 0x00,
                 green: 0x00,
                 blue: 0x00,
                 alpha: 0x00,
+                ..Default::default()
             },
             KnownColors::Turquoise => Color {
                 red: 0x40,
                 green: 0xE0,
                 blue: 0xD0,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Violet => Color {
                 red: 0xEE,
                 green: 0x82,
                 blue: 0xEE,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Wheat => Color {
                 red: 0xF5,
                 green: 0xDE,
                 blue: 0xB3,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::White => Color {
                 red: 0xFF,
                 green: 0xFF,
                 blue: 0xFF,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::WhiteSmoke => Color {
                 red: 0xF5,
                 green: 0xF5,
                 blue: 0xF5,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::Yellow => Color {
                 red: 0xFF,
                 green: 0xFF,
                 blue: 0x00,
-                alpha: 0xFF,
+                ..Default::default()
             },
             KnownColors::YellowGreen => Color {
                 red: 0x9A,
                 green: 0xCD,
                 blue: 0x32,
-                alpha: 0xFF,
+                ..Default::default()
             },
         }
     }
@@ -1024,7 +1027,7 @@ impl Color {
             red: gray,
             green: gray,
             blue: gray,
-            alpha: 255,
+            ..Default::default()
         }
     }
 
@@ -1403,7 +1406,7 @@ impl Color {
             red,
             green,
             blue,
-            alpha: 255,
+            ..Default::default()
         }
     }
 
@@ -1428,6 +1431,7 @@ impl Color {
             green,
             blue,
             alpha,
+            original_string: String::new()
         }
     }
 
@@ -1652,15 +1656,25 @@ impl Color {
     /// assert_eq!(transparent_green.blue, 0);
     /// assert_eq!(transparent_green.alpha, 128);
     /// ```
-    pub fn new_string<S: AsRef<str>>(string: S) -> Option<Color> {
-        let trimmed_string = string.as_ref().trim();
-        let normalized_string = trimmed_string.to_lowercase();
+    pub fn new_string<S: Into<String>>(string: S) -> Option<Color> {
+        let real_string: String = string.into();
+        let trimmed_str = real_string.trim();
+        let normalized_string = trimmed_str.to_lowercase();
         let normalized_str = normalized_string.as_str();
 
         Color::try_parse_known_color(normalized_str)
             .or_else(|| Color::try_parse_abbr_color(normalized_str))
             .or_else(|| Color::try_parse_hex(normalized_str))
             .or_else(|| Color::try_parse_css_function(normalized_str))
+            .and_then(|color| {
+                Some(Color {
+                    red: color.red,
+                    green: color.green,
+                    blue: color.blue,
+                    alpha: color.alpha,
+                    original_string: real_string
+                })
+            })
     }
 
     /// Gets a new Color struct, that represents a color with the given temperature in kelvin.  
@@ -1722,6 +1736,22 @@ impl Color {
         };
 
         Color::new_rgb(rgb.0, rgb.1, rgb.2)
+    }
+
+    /// Gets the original string of the color, if it was called with new_string(...)
+    /// 
+    /// # Example
+    /// ```
+    /// use color_processing::Color;
+    /// 
+    /// let red = Color::new_string("red").unwrap();
+    /// let green = Color::new_string("#00ff00").unwrap();
+    /// 
+    /// assert_eq!("red", red.get_original_string());
+    /// assert_eq!("#00ff00", green.get_original_string());
+    /// ```
+    pub fn get_original_string(&self) -> String {
+        self.original_string.clone()
     }
 
     /// Gets a cmyk tuple of the color.
@@ -2256,8 +2286,8 @@ impl Color {
     /// let white = Color::new_string("white").unwrap();
     /// let black = Color::new_string("black").unwrap();
     /// let red = Color::new_string("red").unwrap();
-    /// let colorized_red_over_white = white.colorize(red);
-    /// let colorized_red_over_black = black.colorize(red);
+    /// let colorized_red_over_white = white.colorize(red.clone());
+    /// let colorized_red_over_black = black.colorize(red.clone());
     ///
     /// assert_eq!("#FF0000", colorized_red_over_white.to_hex_string());
     /// assert_eq!("#000000", colorized_red_over_black.to_hex_string());
@@ -2268,6 +2298,7 @@ impl Color {
             red: (self.red as u16 * color.red as u16 / 255) as u8,
             green: (self.green as u16 * color.green as u16 / 255) as u8,
             blue: (self.blue as u16 * color.blue as u16 / 255) as u8,
+            ..Default::default()
         }
     }
 
@@ -2356,6 +2387,7 @@ impl Color {
             green: gray_value,
             blue: gray_value,
             alpha: self.alpha,
+            ..Default::default()
         }
     }
 
@@ -2385,6 +2417,7 @@ impl Color {
             green: gray_value,
             blue: gray_value,
             alpha: self.alpha,
+            ..Default::default()
         }
     }
 
@@ -2414,6 +2447,7 @@ impl Color {
             green: gray_value,
             blue: gray_value,
             alpha: self.alpha,
+            ..Default::default()
         }
     }
 
@@ -2446,6 +2480,7 @@ impl Color {
                 green: 0,
                 blue: 0,
                 alpha: grayscaled.alpha,
+                ..Default::default()
             }
         } else {
             Color {
@@ -2453,6 +2488,7 @@ impl Color {
                 green: 255,
                 blue: 255,
                 alpha: grayscaled.alpha,
+                ..Default::default()
             }
         }
     }
@@ -2474,6 +2510,7 @@ impl Color {
             green: 255 - self.green,
             blue: 255 - self.blue,
             alpha: self.alpha,
+            ..Default::default()
         }
     }
 
@@ -2834,6 +2871,7 @@ impl Color {
                 as u8,
             alpha: (self.alpha as f64 + (color.alpha as i16 - self.alpha as i16) as f64 * i).round()
                 as u8,
+            ..Default::default()
         }
     }
 
@@ -3362,100 +3400,100 @@ impl Color {
     fn try_parse_abbr_color(string: &str) -> Option<Color> {
         match string {
             "bk" => Some(Color {
-                alpha: 0xFF,
                 red: 0x00,
                 green: 0x00,
                 blue: 0x00,
+                ..Default::default()
             }),
             "wh" => Some(Color {
-                alpha: 0xFF,
                 red: 0xFF,
                 green: 0xFF,
                 blue: 0xFF,
+                ..Default::default()
             }),
             "gr" => Some(Color {
-                alpha: 0xFF,
                 red: 0x80,
                 green: 0x80,
                 blue: 0x80,
+                ..Default::default()
             }),
             "si" => Some(Color {
-                alpha: 0xFF,
                 red: 0xC0,
                 green: 0xC0,
                 blue: 0xC0,
+                ..Default::default()
             }),
             "mr" => Some(Color {
-                alpha: 0xFF,
                 red: 0x80,
                 green: 0x00,
                 blue: 0x00,
+                ..Default::default()
             }),
             "rd" => Some(Color {
-                alpha: 0xFF,
                 red: 0xFF,
                 green: 0x00,
                 blue: 0x00,
+                ..Default::default()
             }),
             "gn" => Some(Color {
-                alpha: 0xFF,
                 red: 0x00,
                 green: 0x80,
                 blue: 0x00,
+                ..Default::default()
             }),
             "li" => Some(Color {
-                alpha: 0xFF,
                 red: 0x00,
                 green: 0xFF,
                 blue: 0x00,
+                ..Default::default()
             }),
             "ol" => Some(Color {
-                alpha: 0xFF,
                 red: 0x80,
                 green: 0x80,
                 blue: 0x00,
+                ..Default::default()
             }),
             "ye" => Some(Color {
-                alpha: 0xFF,
                 red: 0xFF,
                 green: 0xFF,
                 blue: 0x00,
+                ..Default::default()
             }),
             "na" => Some(Color {
-                alpha: 0xFF,
                 red: 0x00,
                 green: 0x00,
                 blue: 0x80,
+                ..Default::default()
             }),
             "bl" => Some(Color {
-                alpha: 0xFF,
                 red: 0x00,
                 green: 0x00,
                 blue: 0xFF,
+                ..Default::default()
             }),
             "pu" => Some(Color {
-                alpha: 0xFF,
                 red: 0x80,
                 green: 0x00,
                 blue: 0x80,
+                ..Default::default()
             }),
             "fu" => Some(Color {
-                alpha: 0xFF,
                 red: 0xFF,
                 green: 0x00,
                 blue: 0xFF,
+                ..Default::default()
             }),
             "te" => Some(Color {
-                alpha: 0xFF,
                 red: 0x00,
                 green: 0x80,
                 blue: 0x80,
+                ..Default::default()
             }),
             "aq" => Some(Color {
-                alpha: 0xFF,
                 red: 0x00,
                 green: 0xFF,
                 blue: 0xFF,
+                ..Default::default()
             }),
             _ => None,
         }
@@ -3712,6 +3750,7 @@ impl From<i32> for Color {
             red: ((number & 0xff0000) >> 16) as u8,
             green: ((number & 0xff00) >> 8) as u8,
             blue: (number & 0xff) as u8,
+            ..Default::default()
         }
     }
 }

@@ -969,10 +969,14 @@ fn color_to_cmyk_string() {
     let red_color = Color::new_string("red").unwrap();
     assert_eq!(red_color.to_cmyk_string(), "cmyk(0%, 100%, 100%, 0%)");
 
+    let orange = Color::new_string("orange").unwrap();
+    assert_eq!(orange.to_rgb_string(), "rgb(255, 165, 0)");
+    assert_eq!(orange.to_cmyk_string(), "cmyk(0%, 35%, 100%, 0%)");
+
     let grayscaled_red_color = red_color.grayscale();
     assert_eq!(
         grayscaled_red_color.to_cmyk_string(),
-        "cmyk(0%, 0%, 0%, 70.2%)"
+        "cmyk(0%, 0%, 0%, 70%)"
     );
 }
 

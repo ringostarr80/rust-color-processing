@@ -24,7 +24,7 @@
 //!
 //! assert_eq!("#4C4C4C", grayscaled_red.to_hex_string());
 //! assert_eq!("rgb(76, 76, 76)", grayscaled_red.to_rgb_string());
-//! assert_eq!("cmyk(0%, 0%, 0%, 70.2%)", grayscaled_red.to_cmyk_string());
+//! assert_eq!("cmyk(0%, 0%, 0%, 70%)", grayscaled_red.to_cmyk_string());
 //! assert_eq!("hsl(0, 0%, 29.8%)", grayscaled_red.to_hsl_string());
 //!
 //! // for colorizing:
@@ -77,7 +77,7 @@ pub struct Color {
     pub green: u8,
     pub blue: u8,
     pub alpha: u8,
-    original_string: String
+    original_string: String,
 }
 
 impl Color {
@@ -1431,7 +1431,7 @@ impl Color {
             green,
             blue,
             alpha,
-            original_string: String::new()
+            original_string: String::new(),
         }
     }
 
@@ -1672,7 +1672,7 @@ impl Color {
                     green: color.green,
                     blue: color.blue,
                     alpha: color.alpha,
-                    original_string: real_string
+                    original_string: real_string,
                 })
             })
     }
@@ -1739,14 +1739,14 @@ impl Color {
     }
 
     /// Gets the original string of the color, if it was called with new_string(...)
-    /// 
+    ///
     /// # Example
     /// ```
     /// use color_processing::Color;
-    /// 
+    ///
     /// let red = Color::new_string("red").unwrap();
     /// let green = Color::new_string("#00ff00").unwrap();
-    /// 
+    ///
     /// assert_eq!("red", red.get_original_string());
     /// assert_eq!("#00ff00", green.get_original_string());
     /// ```
@@ -1786,17 +1786,17 @@ impl Color {
         let black = 1.0 - rgb_max;
         let white = 1.0 - black;
         let cyan = if white != 0.0 {
-            ((1.0 - r - black) / white).round()
+            ((1.0 - r - black) / white)
         } else {
             0.0
         };
         let magenta = if white != 0.0 {
-            ((1.0 - g - black) / white).round()
+            ((1.0 - g - black) / white)
         } else {
             0.0
         };
         let yellow = if white != 0.0 {
-            ((1.0 - b - black) / white).round()
+            ((1.0 - b - black) / white)
         } else {
             0.0
         };
@@ -2601,21 +2601,14 @@ impl Color {
     /// ```
     pub fn to_cmyk_string(&self) -> String {
         let cmyk = self.get_cmyk();
-        let key_rounded = round_with_precision(cmyk.3 * 100.0, 2);
 
-        let mut cmyk_string = String::from("cmyk(");
-        cmyk_string.push_str(
-            format!(
-                "{}%, {}%, {}%, {}%",
-                cmyk.0 * 100.0,
-                cmyk.1 * 100.0,
-                cmyk.2 * 100.0,
-                key_rounded
-            )
-            .as_str(),
-        );
-        cmyk_string.push_str(")");
-        cmyk_string
+        format!(
+            "cmyk({}%, {}%, {}%, {}%)",
+            (cmyk.0 * 100.0).round(),
+            (cmyk.1 * 100.0).round(),
+            (cmyk.2 * 100.0).round(),
+            (cmyk.3 * 100.0).round()
+        )
     }
 
     /// Gets a formatted hex String of the color as used in css.

@@ -63,6 +63,7 @@ extern crate lazy_static;
 extern crate regex;
 
 use self::regex::Regex;
+use std::cmp::min;
 use std::f64::consts::PI;
 use std::str::FromStr;
 
@@ -2320,6 +2321,70 @@ impl Color {
         match Color::new_string(color) {
             Some(color) => Ok(self.colorize(color)),
             None => Err("unable to parse color to colorize."),
+        }
+    }
+
+    /// Mixing 2 colors in additive mode.
+    /// 
+    /// # Example
+    /// ```
+    /// use color_processing::Color;
+    /// 
+    /// let red = Color::new_string("#FF0000").unwrap();
+    /// let green = Color::new_string("#00FF00").unwrap();
+    /// let blue = Color::new_string("#0000FF").unwrap();
+    /// 
+    /// let yellow = red.mix_additive(green.clone());
+    /// let cyan = green.mix_additive(blue.clone());
+    /// let magenta = blue.mix_additive(red);
+    /// let white = yellow.mix_additive(blue);
+    /// 
+    /// assert_eq!("#FFFF00", yellow.to_hex_string());
+    /// assert_eq!("#00FFFF", cyan.to_hex_string());
+    /// assert_eq!("#FF00FF", magenta.to_hex_string());
+    /// assert_eq!("#FFFFFF", white.to_hex_string());
+    /// ```
+    pub fn mix_additive(&self, color: Color) -> Color {
+        Color {
+            alpha: min(self.alpha as u16 + color.alpha as u16, 255) as u8,
+            red:  min(self.red as u16 + color.red as u16, 255) as u8,
+            green: min(self.green as u16 + color.green as u16, 255) as u8,
+            blue: min(self.blue as u16 + color.blue as u16, 255) as u8,
+            ..Default::default()
+        }
+    }
+
+    /// Mixing 2 colors in subtractive mode.
+    /// 
+    /// # Example
+    /// ```
+    /// use color_processing::Color;
+    /// 
+    /// let yellow = Color::new_string("#FFFF00").unwrap();
+    /// let cyan = Color::new_string("#00FFFF").unwrap();
+    /// let magenta = Color::new_string("#FF00FF").unwrap();
+    /// 
+    /// let green = yellow.mix_subtractive(cyan.clone());
+    /// let blue = cyan.mix_subtractive(magenta.clone());
+    /// let red = magenta.mix_subtractive(yellow);
+    /// let black = green.mix_subtractive(magenta);
+    /// 
+    /// assert_eq!("#00FF00", green.to_hex_string());
+    /// assert_eq!("#0000FF", blue.to_hex_string());
+    /// assert_eq!("#FF0000", red.to_hex_string());
+    /// assert_eq!("#000000", black.to_hex_string());
+    /// ```
+    pub fn mix_subtractive(&self, color: Color) -> Color {
+        let cmyk1 = self.get_cmyk();
+        let cmyk2 = color.get_cmyk();
+        let rgb_final = Color::get_rgb_from_cmyk(cmyk1.0 + cmyk2.0, cmyk1.1 + cmyk2.1, cmyk1.2 + cmyk2.2, cmyk1.3 + cmyk2.3);
+
+        Color {
+            alpha: self.alpha,
+            red:  rgb_final.0,
+            green: rgb_final.1,
+            blue: rgb_final.2,
+            ..Default::default()
         }
     }
 

@@ -1,5 +1,6 @@
 output
 html_visualizer/output
+.vscode
 **/target
 **/*.rs.bk
 Cargo.lock

@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2020-02-23
+### Added
+- new methods: mix_additive(&self, color: Color) -> Color and mix_subtractive(&self, color: Color) -> Color
+
 ## [0.4.1] - 2019-11-12
 ### Fixed
 - output of to_cmyk_string() and wrong rounding in get_cmyk().

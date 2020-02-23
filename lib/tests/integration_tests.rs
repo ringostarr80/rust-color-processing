@@ -1626,3 +1626,37 @@ fn color_get_original_string() {
     assert_eq!("red", red.get_original_string());
     assert_eq!("#00ff00", green_hex.get_original_string());
 }
+
+#[test]
+fn color_mix_additive() {
+    let red = Color::new_string("#FF0000").unwrap();
+    let green = Color::new_string("#00FF00").unwrap();
+    let blue = Color::new_string("#0000FF").unwrap();
+
+    let yellow = red.mix_additive(green.clone());
+    let cyan = green.mix_additive(blue.clone());
+    let magenta = blue.mix_additive(red);
+    let white = yellow.mix_additive(blue);
+
+    assert_eq!("#FFFF00", yellow.to_hex_string());
+    assert_eq!("#00FFFF", cyan.to_hex_string());
+    assert_eq!("#FF00FF", magenta.to_hex_string());
+    assert_eq!("#FFFFFF", white.to_hex_string());
+}
+
+#[test]
+fn color_mix_subtractive() {
+    let yellow = Color::new_string("#FFFF00").unwrap();
+    let cyan = Color::new_string("#00FFFF").unwrap();
+    let magenta = Color::new_string("#FF00FF").unwrap();
+
+    let green = yellow.mix_subtractive(cyan.clone());
+    let blue = cyan.mix_subtractive(magenta.clone());
+    let red = magenta.mix_subtractive(yellow);
+    let black = green.mix_subtractive(magenta);
+
+    assert_eq!("#00FF00", green.to_hex_string());
+    assert_eq!("#0000FF", blue.to_hex_string());
+    assert_eq!("#FF0000", red.to_hex_string());
+    assert_eq!("#000000", black.to_hex_string());
+}

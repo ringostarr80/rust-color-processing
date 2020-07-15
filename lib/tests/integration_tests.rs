@@ -1,6 +1,6 @@
 extern crate color_processing;
 
-use color_processing::{Color, KnownColors};
+use color_processing::{Color, KnownColors, ParseError, ParseErrorEnum};
 
 #[test]
 fn color_new() {
@@ -891,6 +891,66 @@ fn color_new_string_as_ref() {
     assert_eq!(red_color.green, 0);
     assert_eq!(red_color.blue, 0);
     assert_eq!(red_color.alpha, 255);
+}
+
+#[test]
+fn color_new_string_error_empty_string() {
+    assert_eq!(
+        Color::new_string(""),
+        Err(ParseError {
+            reason: ParseErrorEnum::EmptyString
+        })
+    );
+}
+
+#[test]
+fn color_new_string_error_invalid_abbreviation() {
+    assert_eq!(
+        Color::new_string("AA"),
+        Err(ParseError {
+            reason: ParseErrorEnum::InvalidAbbreviation
+        })
+    );
+}
+
+#[test]
+fn color_new_string_error_invalid_hex_value() {
+    assert_eq!(
+        Color::new_string("#foo"),
+        Err(ParseError {
+            reason: ParseErrorEnum::InvalidHexValue
+        })
+    );
+}
+
+#[test]
+fn color_new_string_error_invalid_css_function() {
+    assert_eq!(
+        Color::new_string("foo(bar)"),
+        Err(ParseError {
+            reason: ParseErrorEnum::InvalidCssFunction
+        })
+    );
+}
+
+#[test]
+fn color_new_string_error_invalid_color_name() {
+    assert_eq!(
+        Color::new_string("foo"),
+        Err(ParseError {
+            reason: ParseErrorEnum::InvalidColorName
+        })
+    );
+}
+
+#[test]
+fn color_new_string_error_unknown() {
+    assert_eq!(
+        Color::new_string("_foo"),
+        Err(ParseError {
+            reason: ParseErrorEnum::Unknown
+        })
+    );
 }
 
 #[test]

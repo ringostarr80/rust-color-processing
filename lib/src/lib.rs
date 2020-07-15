@@ -64,7 +64,9 @@ extern crate regex;
 
 use self::regex::Regex;
 use std::cmp::min;
+use std::error::Error;
 use std::f64::consts::PI;
+use std::fmt;
 use std::str::FromStr;
 
 fn round_with_precision(number: f64, precision: u8) -> f64 {
@@ -72,7 +74,30 @@ fn round_with_precision(number: f64, precision: u8) -> f64 {
     (number * multiplier).round() / multiplier
 }
 
-#[derive(Clone)]
+#[derive(Debug, PartialEq)]
+pub enum ParseErrorEnum {
+    EmptyString,
+    InvalidColorName,
+    InvalidCssFunction,
+    InvalidHexValue,
+    InvalidAbbreviation,
+    Unknown,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ParseError {
+    pub reason: ParseErrorEnum,
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.reason)
+    }
+}
+
+impl Error for ParseError {}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct Color {
     pub red: u8,
     pub green: u8,
@@ -1657,25 +1682,109 @@ impl Color {
     /// assert_eq!(transparent_green.blue, 0);
     /// assert_eq!(transparent_green.alpha, 128);
     /// ```
-    pub fn new_string<S: Into<String>>(string: S) -> Option<Color> {
+    pub fn new_string<S: Into<String>>(string: S) -> Result<Color, ParseError> {
         let real_string: String = string.into();
         let trimmed_str = real_string.trim();
         let normalized_string = trimmed_str.to_lowercase();
         let normalized_str = normalized_string.as_str();
 
-        Color::try_parse_known_color(normalized_str)
-            .or_else(|| Color::try_parse_abbr_color(normalized_str))
-            .or_else(|| Color::try_parse_hex(normalized_str))
-            .or_else(|| Color::try_parse_css_function(normalized_str))
-            .and_then(|color| {
-                Some(Color {
-                    red: color.red,
-                    green: color.green,
-                    blue: color.blue,
-                    alpha: color.alpha,
-                    original_string: real_string,
-                })
-            })
+        if normalized_str.len() == 0 {
+            return Err(ParseError {
+                reason: ParseErrorEnum::EmptyString,
+            });
+        }
+
+        if normalized_str.len() == 2 {
+            match Color::try_parse_abbr_color(normalized_str) {
+                Some(color) => {
+                    return Ok(Color {
+                        red: color.red,
+                        green: color.green,
+                        blue: color.blue,
+                        alpha: color.alpha,
+                        original_string: real_string,
+                    });
+                }
+                None => {
+                    return Err(ParseError {
+                        reason: ParseErrorEnum::InvalidAbbreviation,
+                    });
+                }
+            }
+        }
+
+        let first_char = normalized_str.chars().nth(0).unwrap();
+        let invalid_hex_char_position =
+            normalized_str.find(|c| c < '0' || c > '9' && c < 'a' || c > 'f');
+        if first_char == '#' || invalid_hex_char_position.is_none() {
+            match Color::try_parse_hex(normalized_str) {
+                Some(color) => {
+                    return Ok(Color {
+                        red: color.red,
+                        green: color.green,
+                        blue: color.blue,
+                        alpha: color.alpha,
+                        original_string: real_string,
+                    });
+                }
+                None => {
+                    return Err(ParseError {
+                        reason: ParseErrorEnum::InvalidHexValue,
+                    });
+                }
+            }
+        }
+
+        match normalized_str.find('(') {
+            Some(parentheses_position) => {
+                if parentheses_position > 0 {
+                    match Color::try_parse_css_function(normalized_str) {
+                        Some(color) => {
+                            return Ok(Color {
+                                red: color.red,
+                                green: color.green,
+                                blue: color.blue,
+                                alpha: color.alpha,
+                                original_string: real_string,
+                            });
+                        }
+                        None => {
+                            return Err(ParseError {
+                                reason: ParseErrorEnum::InvalidCssFunction,
+                            });
+                        }
+                    }
+                } else {
+                    return Err(ParseError {
+                        reason: ParseErrorEnum::Unknown,
+                    });
+                }
+            }
+            None => {}
+        }
+
+        if normalized_str.find(|c| c < 'a' || c > 'z').is_none() {
+            match Color::try_parse_known_color(normalized_str) {
+                Some(color) => {
+                    return Ok(Color {
+                        red: color.red,
+                        green: color.green,
+                        blue: color.blue,
+                        alpha: color.alpha,
+                        original_string: real_string,
+                    });
+                }
+                None => {
+                    return Err(ParseError {
+                        reason: ParseErrorEnum::InvalidColorName,
+                    });
+                }
+            }
+        }
+
+        return Err(ParseError {
+            reason: ParseErrorEnum::Unknown,
+        });
     }
 
     /// Gets a new Color struct, that represents a color with the given temperature in kelvin.  
@@ -1787,17 +1896,17 @@ impl Color {
         let black = 1.0 - rgb_max;
         let white = 1.0 - black;
         let cyan = if white != 0.0 {
-            ((1.0 - r - black) / white)
+            (1.0 - r - black) / white
         } else {
             0.0
         };
         let magenta = if white != 0.0 {
-            ((1.0 - g - black) / white)
+            (1.0 - g - black) / white
         } else {
             0.0
         };
         let yellow = if white != 0.0 {
-            ((1.0 - b - black) / white)
+            (1.0 - b - black) / white
         } else {
             0.0
         };
@@ -2317,28 +2426,28 @@ impl Color {
     /// assert_eq!("#FF0000", colorized_red_over_white.to_hex_string());
     /// assert_eq!("#000000", colorized_red_over_black.to_hex_string());
     /// ```
-    pub fn colorize_string(&self, color: &str) -> Result<Color, &str> {
+    pub fn colorize_string<S: Into<String>>(&self, color: S) -> Result<Color, ParseError> {
         match Color::new_string(color) {
-            Some(color) => Ok(self.colorize(color)),
-            None => Err("unable to parse color to colorize."),
+            Ok(color) => Ok(self.colorize(color)),
+            Err(err) => Err(err),
         }
     }
 
     /// Mixing 2 colors in additive mode.
-    /// 
+    ///
     /// # Example
     /// ```
     /// use color_processing::Color;
-    /// 
+    ///
     /// let red = Color::new_string("#FF0000").unwrap();
     /// let green = Color::new_string("#00FF00").unwrap();
     /// let blue = Color::new_string("#0000FF").unwrap();
-    /// 
+    ///
     /// let yellow = red.mix_additive(green.clone());
     /// let cyan = green.mix_additive(blue.clone());
     /// let magenta = blue.mix_additive(red);
     /// let white = yellow.mix_additive(blue);
-    /// 
+    ///
     /// assert_eq!("#FFFF00", yellow.to_hex_string());
     /// assert_eq!("#00FFFF", cyan.to_hex_string());
     /// assert_eq!("#FF00FF", magenta.to_hex_string());
@@ -2347,7 +2456,7 @@ impl Color {
     pub fn mix_additive(&self, color: Color) -> Color {
         Color {
             alpha: min(self.alpha as u16 + color.alpha as u16, 255) as u8,
-            red:  min(self.red as u16 + color.red as u16, 255) as u8,
+            red: min(self.red as u16 + color.red as u16, 255) as u8,
             green: min(self.green as u16 + color.green as u16, 255) as u8,
             blue: min(self.blue as u16 + color.blue as u16, 255) as u8,
             ..Default::default()
@@ -2355,20 +2464,20 @@ impl Color {
     }
 
     /// Mixing 2 colors in subtractive mode.
-    /// 
+    ///
     /// # Example
     /// ```
     /// use color_processing::Color;
-    /// 
+    ///
     /// let yellow = Color::new_string("#FFFF00").unwrap();
     /// let cyan = Color::new_string("#00FFFF").unwrap();
     /// let magenta = Color::new_string("#FF00FF").unwrap();
-    /// 
+    ///
     /// let green = yellow.mix_subtractive(cyan.clone());
     /// let blue = cyan.mix_subtractive(magenta.clone());
     /// let red = magenta.mix_subtractive(yellow);
     /// let black = green.mix_subtractive(magenta);
-    /// 
+    ///
     /// assert_eq!("#00FF00", green.to_hex_string());
     /// assert_eq!("#0000FF", blue.to_hex_string());
     /// assert_eq!("#FF0000", red.to_hex_string());
@@ -2377,11 +2486,16 @@ impl Color {
     pub fn mix_subtractive(&self, color: Color) -> Color {
         let cmyk1 = self.get_cmyk();
         let cmyk2 = color.get_cmyk();
-        let rgb_final = Color::get_rgb_from_cmyk(cmyk1.0 + cmyk2.0, cmyk1.1 + cmyk2.1, cmyk1.2 + cmyk2.2, cmyk1.3 + cmyk2.3);
+        let rgb_final = Color::get_rgb_from_cmyk(
+            cmyk1.0 + cmyk2.0,
+            cmyk1.1 + cmyk2.1,
+            cmyk1.2 + cmyk2.2,
+            cmyk1.3 + cmyk2.3,
+        );
 
         Color {
             alpha: self.alpha,
-            red:  rgb_final.0,
+            red: rgb_final.0,
             green: rgb_final.1,
             blue: rgb_final.2,
             ..Default::default()
@@ -3814,7 +3928,7 @@ impl From<i32> for Color {
 }
 
 impl FromStr for Color {
-    type Err = &'static str;
+    type Err = String;
 
     /// Parses a string into a Color-struct.
     ///
@@ -3839,8 +3953,8 @@ impl FromStr for Color {
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match Color::new_string(s) {
-            Some(color) => Ok(color),
-            None => Err("unable to parse string to Color-struct."),
+            Ok(color) => Ok(color),
+            Err(err) => Err(err.to_string()),
         }
     }
 }

@@ -1,6 +1,11 @@
 [workspace]
 
 members = [
+	"html_visualizer",
     "lib",
-	"html_visualizer"
+	"wasm-lib"
 ]
+
+[profile.release.package.wasm-lib]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"

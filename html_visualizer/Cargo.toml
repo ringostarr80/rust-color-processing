@@ -1,6 +1,6 @@
 [package]
 name = "html_visualizer"
-edition = "2018"
+edition = "2021"
 version = "0.2.0"
 authors = ["Ringo Leese <webmaster@ringoleese.de>"]
 readme = "README.md"

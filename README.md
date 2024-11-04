@@ -2,6 +2,7 @@
 [![Crates.io](https://img.shields.io/crates/v/color_processing.svg)](https://crates.io/crates/color_processing)
 [![Documentation](https://docs.rs/color_processing/badge.svg)](https://docs.rs/color_processing/)
 ![Rust](https://github.com/ringostarr80/rust-color-processing/workflows/Rust/badge.svg)
+[![codecov](https://codecov.io/gh/ringostarr80/rust-color-processing/graph/badge.svg?token=EIUKFJI1QR)](https://codecov.io/gh/ringostarr80/rust-color-processing)
 
 # Informations
 

@@ -11,5 +11,5 @@ license = "CC0-1.0"
 keywords = ["color", "colors", "colour", "css", "converter"]
 
 [dependencies]
-regex = "1.10"
-lazy_static = "1.4"
+regex = "1.11"
+lazy_static = "1.5"

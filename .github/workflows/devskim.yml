@@ -5,6 +5,8 @@
 
 name: DevSkim
 
+permissions: {}
+
 on:
   push:
     branches: [ main ]
@@ -13,22 +15,28 @@ on:
   schedule:
     - cron: '0 9 * * *'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   lint:
     name: DevSkim
     runs-on: ubuntu-latest
     permissions:
-      actions: read
-      contents: read
-      security-events: write
+      actions: read          # needed by codeql-action to read workflow run metadata
+      contents: read         # needed for actions/checkout
+      security-events: write # needed to upload SARIF results to the Security tab
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Run DevSkim scanner
-        uses: microsoft/DevSkim-Action@v1
-        
+        uses: microsoft/DevSkim-Action@4b5047945a44163b94642a1cecc0d93a3f428cc6 # v1.0.16
+
       - name: Upload DevSkim scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@03e4368ac7daa2bd82b3e85262f3bf87ee112f57 # v3.36.0
         with:
           sarif_file: devskim-results.sarif
